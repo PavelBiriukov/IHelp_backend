@@ -50,11 +50,11 @@ export class AdminApiController {
   @ApiTags('Get a list of administrators')
   @AccessControlList({ role: UserRole.ADMIN, rights: [AccessRights.confirmUser], isRoot: true })
   public async getAdministrators() {
-    const adminsArray = await Promise.all([
+    const [activated, deactivated] = await Promise.all([
       this.usersService.getAdministrators(true),
       this.usersService.getAdministrators(false),
-    ]).then(([activeAdmins, inactiveAdmins]) => [...activeAdmins, ...inactiveAdmins].flat());
-    return Promise.resolve(adminsArray);
+    ]);
+    return [...activated, ...deactivated];
   }
 
   @Get('activated')
