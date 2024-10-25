@@ -9,6 +9,10 @@ import {
   CreateTaskChatDtoType,
   VolunteerConflictChatMetaInterface,
   MessageInterface,
+  GetUserChatsResponseDtoInterface,
+  GetAdminChatsResponseDtoInterface,
+  TaskChatInfo,
+  SystemChatInfo,
 } from '../../common/types/chats.types';
 import { AdminInterface, UserRole, UserStatus } from '../../common/types/user.types';
 import { wsChatPageQueryPayload, WsNewMessage } from '../../common/types/websockets.types';
@@ -16,14 +20,14 @@ import { wsChatPageQueryPayload, WsNewMessage } from '../../common/types/websock
 // #region Mock data
 
 const mockVolunteer = {
-  _id: 'volunteerId',
+  _id: '65d0c96bb4f344e1a0072b66',
   role: UserRole.VOLUNTEER,
-  name: 'Volunteer',
-  phone: 'phone',
-  avatar: 'avatar',
-  address: 'address',
+  name: 'Test Volunteerx',
+  phone: '+79204124234',
+  avatar: 'https://i.pravatar.cc/100',
+  address: 'Москва, улица Плещеева, 30',
   vkId: 'vkId',
-  score: 0,
+  score: 15,
   status: UserStatus.CONFIRMED,
   location: undefined,
   keys: false,
@@ -38,11 +42,11 @@ const mockVolunteer = {
 };
 
 const mockRecipient = {
-  _id: 'recepientId',
+  _id: '667becd00b1c6c36e084239a',
   role: UserRole.RECIPIENT,
-  name: 'Recepient',
-  phone: 'phone',
-  avatar: 'avatar',
+  name: 'Miss Therage',
+  phone: '+7 (785) 222-12-21',
+  avatar: 'https://i.pravatar.cc/100',
   address: 'address',
   vkId: 'vkId',
   score: 0,
@@ -86,7 +90,8 @@ const mockMessages: Array<MessageInterface> = [
     ],
     createdAt: new Date(),
     author: mockVolunteer,
-    chatId: new mongoose.Types.ObjectId().toHexString(),
+    // chatId: new mongoose.Types.ObjectId().toHexString(),
+    chatId: '667becd00b1c6c36e084239a',
   },
   {
     _id: new mongoose.Types.ObjectId().toHexString(),
@@ -107,31 +112,38 @@ const mockResponseMessage = {
   },
 };
 
-const mockTaskChatMeta = {
-  _id: new mongoose.Types.ObjectId().toHexString(),
-  type: 'TASK_CHAT',
-  isActive: true,
-  taskId: new mongoose.Types.ObjectId().toHexString(),
-  volunteer: mockVolunteer,
-  recipient: mockRecipient,
-  id: 'test',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  watermark: new mongoose.Types.ObjectId().toHexString(),
-  unreads: 1,
+const mockTaskChatMeta: TaskChatInfo = {
+  meta: {
+    // _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: '671a520555bb110c3ad708d7',
+    type: 'TASK_CHAT',
+    isActive: true,
+    // taskId: new mongoose.Types.ObjectId().toHexString(),
+    taskId: '671a520555bb110c3ad708d4',
+    volunteer: mockVolunteer,
+    recipient: mockRecipient,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    watermark: new mongoose.Types.ObjectId().toHexString(),
+    unreads: 1,
+  },
+  chats: mockMessages,
 };
 
-const mockSystemChatMeta: SystemChatMetaInterface = {
-  _id: new mongoose.Types.ObjectId().toHexString(),
-  type: 'SYSTEM_CHAT',
-  isActive: true,
-  user: mockRecipient,
-  admin: mockAdmin,
-  id: 'test2',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  watermark: new mongoose.Types.ObjectId().toHexString(),
-  unreads: 1,
+const mockSystemChatMeta: SystemChatInfo = {
+  meta: {
+    _id: new mongoose.Types.ObjectId().toHexString(),
+    type: 'SYSTEM_CHAT',
+    isActive: true,
+    user: mockRecipient,
+    admin: mockAdmin,
+    id: 'test2',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    watermark: new mongoose.Types.ObjectId().toHexString(),
+    unreads: 1,
+  },
+  chats: mockMessages,
 };
 
 const mockVolunteerChat: VolunteerConflictChatMetaInterface = {
@@ -168,7 +180,7 @@ const mockConflictChats: ConflictChatsTupleMetaInterface = {
   meta: [mockVolunteerChat, mockRecipientChat],
 };
 
-const mockMetaArray = [mockTaskChatMeta, mockSystemChatMeta, mockVolunteerChat];
+// const mockMetaArray = [mockTaskChatMeta, mockSystemChatMeta, mockVolunteerChat];
 // #endregion
 
 @Injectable()
@@ -201,7 +213,7 @@ export class ChatService {
   async createSystemChat(metadata: SystemChatMetaInterface): Promise<SystemChatMetaInterface> {
     // eslint-disable-next-line no-console
     console.log('Creating system chat');
-    return mockSystemChatMeta;
+    return mockSystemChatMeta.meta;
   }
 
   async createConflictChat(
@@ -313,10 +325,12 @@ export class ChatService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getUserChatsMeta(userId: string | ObjectId) {
+  async getUserChatsMeta(
+    userId: string | ObjectId
+  ): Promise<GetUserChatsResponseDtoInterface | GetAdminChatsResponseDtoInterface> {
     // eslint-disable-next-line no-console
-    console.log('Getting user meta');
-    return mockMetaArray;
+    console.log('Getting user meta', userId);
+    return { task: [mockTaskChatMeta], system: [mockSystemChatMeta], conflict: [] };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
