@@ -7,11 +7,6 @@ export class NewMessageDto implements WsNewMessage {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  title: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
   body: string;
 
   @ApiProperty()
