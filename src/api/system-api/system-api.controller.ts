@@ -12,8 +12,7 @@ import { AnyUserInterface } from '../../common/types/user.types';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ContactsService } from '../../core/contacts/contacts.service';
 import { PolicyService } from '../../core/policy/policy.service';
-import { AuthenticateCommand } from '../../common/commands/authenticate.command';
-import { SendTokenCommand } from '../../common/commands/send-token.command';
+import { UpdateUserProfileCommand } from '../../common/commands/update-user-profile.command';
 
 @Controller('system')
 export class SystemApiController {
@@ -73,14 +72,11 @@ export class SystemApiController {
   @UseGuards(JwtAuthGuard)
   public async updateProfile(@Req() req: Express.Request, @Body() dto: UpdateProfileDto) {
     const { _id } = req.user as AnyUserInterface;
-    const profile = await this.userService.updateProfile(_id, dto);
-    const token = await this.commandBus.execute<AuthenticateCommand>(
-      new AuthenticateCommand(profile)
-    );
-    await this.commandBus.execute<SendTokenCommand, { user: AnyUserInterface; token: string }>(
-      new SendTokenCommand(profile, token)
-    );
-    return { ...profile, token };
+
+    return this.commandBus.execute<
+      UpdateUserProfileCommand,
+      { user: AnyUserInterface; token: string }
+    >(new UpdateUserProfileCommand(_id, dto));
   }
 
   @Get('contacts')

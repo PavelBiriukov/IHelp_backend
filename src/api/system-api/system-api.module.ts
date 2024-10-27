@@ -11,8 +11,8 @@ import { PolicyModule } from '../../core/policy/policy.module';
 import { AuthModule } from '../../core/auth/auth.module';
 import { AuthService } from '../../core/auth/auth.service';
 import { SystemApiController } from './system-api.controller';
-import { COMMANDS } from '../auth-api/commands-and-queries/commands';
 import { WebsocketApiModule } from '../websocket-api/websocket-api.module';
+import { COMMANDS } from './commands-and-queries/commands';
 
 @Module({
   imports: [

@@ -7,9 +7,6 @@ import {
 } from '@nestjs/common';
 import { InternalServerErrorException, NotFoundException } from '@nestjs/common/exceptions';
 import { CommandBus } from '@nestjs/cqrs';
-
-import { AuthenticateCommand } from '../../common/commands/authenticate.command';
-import { SendTokenCommand } from '../../common/commands/send-token.command';
 import { CreateAdminDto, CreateUserDto } from '../../common/dto/users.dto';
 import {
   AdminInterface,
@@ -177,10 +174,9 @@ export class UsersService {
             { status: UserStatus.CONFIRMED }
           )) as User & AnyUserInterface;
 
-          this.refreshAndSendToken(updatedUser);
-
           return Promise.resolve(updatedUser);
         }
+
         case UserStatus.CONFIRMED: {
           return user;
         }
@@ -214,8 +210,6 @@ export class UsersService {
           { status: status + 1 }
         )) as User & AnyUserInterface;
 
-        this.refreshAndSendToken(updatedUser);
-
         return Promise.resolve(updatedUser);
       }
       return user;
@@ -237,8 +231,6 @@ export class UsersService {
           { status: status - 1 }
         )) as User & AnyUserInterface;
 
-        this.refreshAndSendToken(updatedUser);
-
         return Promise.resolve(updatedUser);
       }
       return user;
@@ -258,8 +250,6 @@ export class UsersService {
         { keys: true }
       )) as User & AnyUserInterface;
 
-      this.refreshAndSendToken(updatedUser);
-
       return Promise.resolve(updatedUser);
     }
 
@@ -278,8 +268,6 @@ export class UsersService {
         { keys: false }
       )) as User & AnyUserInterface;
 
-      this.refreshAndSendToken(updatedUser);
-
       return Promise.resolve(updatedUser);
     }
 
@@ -296,8 +284,6 @@ export class UsersService {
         { _id, role: UserRole.ADMIN },
         { isActive: true }
       )) as User & AnyUserInterface;
-
-      this.refreshAndSendToken(updatedUser);
 
       return Promise.resolve(updatedUser);
     }
@@ -368,8 +354,6 @@ export class UsersService {
       { $addToSet: { permissions: { $each: privileges } } }
     )) as User & AnyUserInterface;
 
-    this.refreshAndSendToken(updatedUser);
-
     return Promise.resolve(updatedUser);
   }
 
@@ -400,8 +384,6 @@ export class UsersService {
       { $pull: { permissions: { $in: privileges } } }
     )) as User & AnyUserInterface;
 
-    this.refreshAndSendToken(updatedUser);
-
     return Promise.resolve(updatedUser);
   }
 
@@ -431,8 +413,6 @@ export class UsersService {
       { _id: userId, role: UserRole.ADMIN },
       { $set: { permissions: privileges } }
     )) as User & AnyUserInterface;
-
-    this.refreshAndSendToken(updatedUser);
 
     return Promise.resolve(updatedUser);
   }
@@ -488,8 +468,6 @@ export class UsersService {
       dto
     )) as User & AnyUserInterface;
 
-    this.refreshAndSendToken(updatedUser);
-
     return Promise.resolve(updatedUser);
   }
 
@@ -502,18 +480,7 @@ export class UsersService {
       dto
     )) as User & AnyUserInterface;
 
-    this.refreshAndSendToken(updatedUser);
-
     return Promise.resolve(updatedUser);
-  }
-
-  async refreshAndSendToken(user: AnyUserInterface) {
-    if (user) {
-      const token: string = await this.commandBus.execute<AuthenticateCommand, string>(
-        new AuthenticateCommand(user)
-      );
-      this.commandBus.execute<SendTokenCommand, string>(new SendTokenCommand(user, token));
-    }
   }
 
   private static requireLogin(userId: string) {

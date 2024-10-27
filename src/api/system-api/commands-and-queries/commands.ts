@@ -1,4 +1,3 @@
-import { AuthenticateHandler } from '../../../core/authenticate.handler';
-import { SendTokenHandler } from '../../../core/send-token.handler';
+import { UpdateUserProfileHandler } from '../../../core/update-user-profile.handler';
 
-export const COMMANDS = [SendTokenHandler, AuthenticateHandler];
+export const COMMANDS = [UpdateUserProfileHandler];

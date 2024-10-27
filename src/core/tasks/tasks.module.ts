@@ -5,6 +5,7 @@ import { TasksRepositoryModule } from '../../datalake/task/tasks-repository.modu
 import { UsersRepositoryModule } from '../../datalake/users/users-repository.module';
 import { CategoryRepositoryModule } from '../../datalake/category/category-repository.module';
 import { UsersModule } from '../users/users.module';
+import { COMMANDS } from './commands-and-queries/commands';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
     CqrsModule,
   ],
-  providers: [TasksService],
+  providers: [...COMMANDS, TasksService],
   exports: [TasksService],
 })
 export class TasksModule {}
