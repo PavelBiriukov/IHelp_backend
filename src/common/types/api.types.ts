@@ -61,6 +61,6 @@ export interface EnrichedRequest extends Request {
   user?: User & (Volunteer | Recipient | Admin);
 }
 
-export interface UpdatePasswordDto {
+export interface UpdatePasswordDtoInterface {
   password: string;
 }

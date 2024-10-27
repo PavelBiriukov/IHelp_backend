@@ -151,7 +151,7 @@ export class UsersService {
     } */
     return this.create({
       ...dto,
-      password: await HashService.generateHash(dto.password),
+      password: await this.hashPassword(dto.password),
       isRoot: false,
       isActive: true,
       role: UserRole.ADMIN,
@@ -164,24 +164,20 @@ export class UsersService {
   }
 
   async setAdminPassword(userId: string, password: string): Promise<AnyUserInterface> {
-    let adminUpdatePassword;
     const hash = await this.hashPassword(password);
-    const admin = await this.usersRepo.findById(userId);
+    const admin = (await this.usersRepo.findOneAndUpdate(
+      { _id: userId, role: UserRole.ADMIN },
+      { password: hash },
+      { new: true }
+    )) as User & AnyUserInterface;
     if (!admin) {
-      throw new NotFoundException(`Пользователь с _id '${admin}' не найден<`);
+      throw new NotFoundException(`Пользователь с _id '${userId}' не найден<`);
     }
     if (admin.isRoot && admin.role === UserRole.ADMIN) {
-      throw new NotFoundException(`Изменение пароля Главного администратора недоступно`);
+      throw new ForbiddenException(`Изменение пароля Главного администратора недоступно`);
     }
-    if (admin.role === UserRole.ADMIN && admin.isRoot === false) {
-      const { role } = admin;
-      adminUpdatePassword = (await this.usersRepo.findOneAndUpdate(
-        { _id: userId, role },
-        { password: hash }
-      )) as User & AnyUserInterface;
-      this.refreshAndSendToken(adminUpdatePassword);
-    }
-    return adminUpdatePassword;
+    this.refreshAndSendToken(admin);
+    return admin;
   }
 
   async confirm(_id: string): Promise<User & AnyUserInterface> {
