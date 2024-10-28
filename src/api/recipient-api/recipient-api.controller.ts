@@ -62,7 +62,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @ApiInternalServerErrorResponse({
     schema: schema('Internal server error', null, 500),
@@ -84,7 +85,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @ApiInternalServerErrorResponse({
     schema: schema('Internal server error', null, 500),
@@ -113,7 +115,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @ApiConflictResponse({
     schema: schema('Нельзя повторно отчитаться по задаче!', null, 409),
@@ -145,7 +148,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @ApiConflictResponse({
     schema: schema('Нельзя повторно отчитаться по задаче!', null, 409),
@@ -172,7 +176,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @AccessControlList({ role: UserRole.RECIPIENT, level: UserStatus.CONFIRMED })
   public async getAcceptedTasks(@Query() query: GetTasksSearchDto, @Req() req: Express.Request) {
@@ -195,7 +200,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @AccessControlList({ role: UserRole.RECIPIENT, level: UserStatus.CONFIRMED })
   public async getActiveTasks(@Query() query: GetTasksSearchDto, @Req() req: Express.Request) {
@@ -232,7 +238,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   public async getCompletedTasks(@Query() query: GetTasksSearchDto, @Req() req: Express.Request) {
     const { latitude, longitude, ...data } = query;
@@ -268,7 +275,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус: 1, 2 или 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @ApiInternalServerErrorResponse({
     schema: schema('Internal server error', null, 500),
@@ -297,7 +305,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @ApiInternalServerErrorResponse({
     schema: schema('Internal server error', null, 500),
@@ -325,7 +334,8 @@ export class RecipientApiController {
   })
   @ApiForbiddenResponse({
     schema: schema('Forbidden resource', 'Forbidden', 403),
-    description: 'Для совершения этой операции нужен статус 1, 2, 3',
+    description:
+      'Для совершения этой операции нужен status 1 (CONFIRMED) или status 2 (VERIFIED) или статус 3 (ACTIVATED)',
   })
   @ApiInternalServerErrorResponse({
     schema: schema('Internal server error', null, 500),
