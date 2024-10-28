@@ -2,7 +2,7 @@ import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersService } from './users/users.service';
 import { AuthenticateCommand } from '../common/commands/authenticate.command';
 import { SendTokenCommand } from '../common/commands/send-token.command';
-import { RevokeVolunteerKeysCommand } from '../common/commands/revoke-volunteer-kyes.command';
+import { RevokeVolunteerKeysCommand } from '../common/commands/revoke-volunteer-keys.command';
 
 @CommandHandler(RevokeVolunteerKeysCommand)
 export class RevokeVolunteerKeysHandler implements ICommandHandler<RevokeVolunteerKeysCommand> {

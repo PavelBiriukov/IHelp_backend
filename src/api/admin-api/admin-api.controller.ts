@@ -39,6 +39,8 @@ import { GrantVolunteerKeysCommand } from '../../common/commands/grant-volunteer
 import { GrantAdminPrivilegesCommand } from '../../common/commands/grant-admin-privileges.command';
 import { RevokeAdminPrivilegesCommand } from '../../common/commands/revoke-admin-privileges.command';
 import { UpdateAdminPrivilegesCommand } from '../../common/commands/update-admin-privileges.command copy';
+import { DeactivateAdminCommand } from '../../common/commands/deactivate-admin.command';
+import { BlockUserCommand } from '../../common/commands/block-user.command';
 
 @UseGuards(JwtAuthGuard)
 @UseGuards(AccessControlGuard)
@@ -86,7 +88,9 @@ export class AdminApiController {
   @ApiTags('Block (deactivate) an administrator. Root only.')
   @AccessControlList({ role: UserRole.ADMIN, isRoot: true })
   async deactivate(@Param('id') _id: string) {
-    return this.usersService.deactivate(_id);
+    return this.commandBus.execute<DeactivateAdminCommand, AnyUserInterface>(
+      new DeactivateAdminCommand(_id)
+    );
   }
 
   // Добавление привилегий администратору. Только root
@@ -152,7 +156,7 @@ export class AdminApiController {
   @ApiTags('Block regular user. Limited access.')
   @AccessControlList({ role: UserRole.ADMIN, rights: [AccessRights.blockUser] })
   async block(@Param('id') _id: string) {
-    return this.usersService.block(_id);
+    return this.commandBus.execute<BlockUserCommand, AnyUserInterface>(new BlockUserCommand(_id));
   }
 
   @Put('users/:id/promote')
