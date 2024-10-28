@@ -17,10 +17,14 @@ export class PointGeoJSONDto implements PointGeoJSONInterface {
     minItems: 2,
     maxItems: 2,
     example: [58, 58],
+    description: 'координаты',
   })
   coordinates: [number, number];
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Point',
+    description: 'тип',
+  })
   @IsIn(['Point'])
   type: 'Point';
 }

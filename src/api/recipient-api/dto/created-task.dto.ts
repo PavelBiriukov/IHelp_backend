@@ -5,53 +5,94 @@ import { CategoryDto } from '../../../common/dto/category.dto';
 import { InTaskUserDto } from './in-task-user.dto';
 
 export class CreatedTaskDto {
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Москва, Красная Площадь, д.1',
+    description: 'Адрес',
+  })
   address: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'created',
+    description: 'статус задачи',
+  })
   status: TaskStatus.CREATED;
 
-  @ApiProperty()
+  @ApiProperty({
+    enum: ['VIRGIN', 'PENDING', 'FULFILLED', 'REJECTED'],
+    example: 'virgin, pending, fulfilled, rejected или null',
+    description: 'статус выполнения',
+  })
   adminResolve: ResolveStatus | null;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'модератор',
+  })
   moderator: InTaskUserDto | null;
 
   @ApiProperty()
   category: CategoryDto;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '2024-08-30T13:25:45.910+00:00',
+    description: 'дата и время',
+  })
   date: Date | null;
 
   @ApiProperty({
     type: PointGeoJSONDto,
+    description: 'данные о локации',
   })
   location: PointGeoJSONDto;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'данные реципиента',
+  })
   recipient: InTaskUserDto;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'fulfilled, rejected или null',
+    description: 'статус выполнения выставляемый реципиентом',
+  })
   recipientReport: TaskReport | null;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'данные волонтера',
+  })
   volunteer: InTaskUserDto | null;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'fulfilled, rejected или null',
+    description: 'статус выполнения выставляемый реципиентом',
+  })
   volunteerReport: TaskReport | null;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'true',
+    description: 'ожидание изменения',
+  })
   isPendingChanges: boolean;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'walkpets',
+    description: 'описание задачи',
+  })
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '66d1c8595f28e1f67ef545c0',
+    description: 'ай ди задачи',
+  })
   _id: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '2024-08-30T13:25:45.910+00:00',
+    description: 'дата создания',
+  })
   createdAt: Date;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '2024-08-30T13:25:45.910+00:00',
+    description: 'дата обновления',
+  })
   updatedAt: Date;
 }

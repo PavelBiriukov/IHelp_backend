@@ -1,9 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class DeletedTaskDto {
-  @ApiProperty()
+  @ApiProperty({
+    example: true,
+    description: 'признанние операции',
+  })
   acknowledged: boolean;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 1,
+    description: 'количество удаленных запией',
+  })
   deletedCount: number;
 }

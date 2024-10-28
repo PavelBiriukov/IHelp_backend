@@ -16,21 +16,31 @@ export type UpdateCategoryDto = Partial<CreateCategoryDto> & {
 
 export class CategoryDto {
   @IsString()
-  @ApiProperty()
+  @ApiProperty({
+    example: '66d193fa211c8a47b0f07785',
+    description: 'ай ди категории',
+  })
   _id: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Pets',
+    description: 'название категории',
+  })
   @IsString()
   title: string;
 
   @ApiProperty({
     type: Number,
+    example: 10,
+    description: 'количество очков',
   })
   @IsNumber()
   points: number;
 
   @ApiProperty({
     type: Number,
+    example: 1,
+    description: 'уровень доступа',
   })
   @IsNumber()
   accessLevel: number;
