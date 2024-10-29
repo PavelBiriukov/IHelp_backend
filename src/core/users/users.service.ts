@@ -298,7 +298,12 @@ export class UsersService {
     if (user.role === UserRole.VOLUNTEER || user.role === UserRole.RECIPIENT) {
       const { role } = user;
       UsersService.requireLogin(_id);
-      return this.usersRepo.findOneAndUpdate({ _id, role }, { status: UserStatus.BLOCKED });
+
+      const updatedUser = (await this.usersRepo.findOneAndUpdate(
+        { _id, role },
+        { status: UserStatus.BLOCKED }
+      )) as User & AnyUserInterface;
+      return updatedUser;
     }
     if (user.role === UserRole.ADMIN) {
       throw new BadRequestException('Нужен _id волонтёра или реципиента!');
@@ -316,7 +321,11 @@ export class UsersService {
     }
     if (user.role === UserRole.ADMIN) {
       UsersService.requireLogin(_id);
-      return this.usersRepo.findOneAndUpdate({ _id, role: UserRole.ADMIN }, { isActive: false });
+      const updatedUser = (await this.usersRepo.findOneAndUpdate(
+        { _id, role: UserRole.ADMIN },
+        { isActive: false }
+      )) as User & AnyUserInterface;
+      return updatedUser;
     }
     if (user.role === UserRole.VOLUNTEER || user.role === UserRole.RECIPIENT) {
       throw new BadRequestException('Нужен _id администратора!');
