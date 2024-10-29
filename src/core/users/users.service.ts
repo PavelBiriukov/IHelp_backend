@@ -176,7 +176,6 @@ export class UsersService {
     if (admin.isRoot && admin.role === UserRole.ADMIN) {
       throw new ForbiddenException(`Изменение пароля Главного администратора недоступно`);
     }
-    this.refreshAndSendToken(admin);
     return admin;
   }
 
