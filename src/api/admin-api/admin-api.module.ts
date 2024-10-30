@@ -12,6 +12,7 @@ import { CategoriesModule } from '../../core/categories/categories.module';
 import { TasksModule } from '../../core/tasks/tasks.module';
 import { ContactsModule } from '../../core/contacts/contacts.module';
 import { AdminApiController } from './admin-api.controller';
+import { COMMANDS } from './commands-and-queries/commands';
 
 @Module({
   imports: [
@@ -25,6 +26,6 @@ import { AdminApiController } from './admin-api.controller';
     CqrsModule,
   ],
   controllers: [AdminApiController],
-  providers: [UsersService, JwtStrategy, LocalStrategy],
+  providers: [...COMMANDS, UsersService, JwtStrategy, LocalStrategy],
 })
 export class AdminApiModule {}

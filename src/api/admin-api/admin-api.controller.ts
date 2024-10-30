@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { MethodNotAllowedException } from '@nestjs/common/exceptions';
 import { ApiTags } from '@nestjs/swagger';
-
+import { CommandBus } from '@nestjs/cqrs';
 import { UsersService } from '../../core/users/users.service';
 import { BlogService } from '../../core/blog/blog.service';
 import { CategoriesService } from '../../core/categories/categories.service';
@@ -32,6 +32,15 @@ import { ApiPrivilegesDto } from './dto/privileges.dto';
 import { ApiCreateCategoryDto } from './dto/new-category.dto';
 import { ApiUpdateCategoryDto } from './dto/update-category.dto';
 import { ApiBulkUpdateCategoriesDto } from './dto/bulk-update-categories.dto';
+import { ConfirmUserCommand } from '../../common/commands/confirm-user.command';
+import { ActivateUserCommand } from '../../common/commands/activate-user.command';
+import { UpgradeUserCommand } from '../../common/commands/upgrade-user.command';
+import { GrantVolunteerKeysCommand } from '../../common/commands/grant-volunteer-keys.command';
+import { GrantAdminPrivilegesCommand } from '../../common/commands/grant-admin-privileges.command';
+import { RevokeAdminPrivilegesCommand } from '../../common/commands/revoke-admin-privileges.command';
+import { UpdateAdminPrivilegesCommand } from '../../common/commands/update-admin-privileges.command copy';
+import { DeactivateAdminCommand } from '../../common/commands/deactivate-admin.command';
+import { BlockUserCommand } from '../../common/commands/block-user.command';
 
 @UseGuards(JwtAuthGuard)
 @UseGuards(AccessControlGuard)
@@ -43,7 +52,8 @@ export class AdminApiController {
     private readonly blogService: BlogService,
     private readonly categoryService: CategoriesService,
     private readonly tasksService: TasksService,
-    private readonly contactsService: ContactsService
+    private readonly contactsService: ContactsService,
+    private readonly commandBus: CommandBus
   ) {}
 
   @Get('all')
@@ -69,14 +79,18 @@ export class AdminApiController {
   @ApiTags('Activate an administrator. Root only.')
   @AccessControlList({ role: UserRole.ADMIN, isRoot: true })
   async activate(@Param('id') _id: string) {
-    return this.usersService.activate(_id);
+    return this.commandBus.execute<ActivateUserCommand, { user: AnyUserInterface; token: string }>(
+      new ActivateUserCommand(_id)
+    );
   }
 
   @Delete(':id/activate')
   @ApiTags('Block (deactivate) an administrator. Root only.')
   @AccessControlList({ role: UserRole.ADMIN, isRoot: true })
   async deactivate(@Param('id') _id: string) {
-    return this.usersService.deactivate(_id);
+    return this.commandBus.execute<DeactivateAdminCommand, AnyUserInterface>(
+      new DeactivateAdminCommand(_id)
+    );
   }
 
   // Добавление привилегий администратору. Только root
@@ -89,7 +103,10 @@ export class AdminApiController {
     @Req() req: Express.Request
   ) {
     const { privileges } = dto;
-    return this.usersService.grantPrivileges(req.user as AnyUserInterface, userId, privileges);
+    return this.commandBus.execute<
+      GrantAdminPrivilegesCommand,
+      { user: AnyUserInterface; token: string }
+    >(new GrantAdminPrivilegesCommand(req.user as AnyUserInterface, userId, privileges));
   }
 
   // Удаление привилегий администратора. Только root
@@ -102,7 +119,11 @@ export class AdminApiController {
     @Req() req: Express.Request
   ) {
     const { privileges } = dto;
-    return this.usersService.revokePrivileges(req.user as AnyUserInterface, userId, privileges);
+
+    return this.commandBus.execute<
+      RevokeAdminPrivilegesCommand,
+      { user: AnyUserInterface; token: string }
+    >(new RevokeAdminPrivilegesCommand(req.user as AnyUserInterface, userId, privileges));
   }
 
   // Обновление привилегий администратора. Только root
@@ -115,28 +136,36 @@ export class AdminApiController {
     @Req() req: Express.Request
   ) {
     const { privileges } = dto;
-    return this.usersService.updatePrivileges(req.user as AnyUserInterface, userId, privileges);
+
+    return this.commandBus.execute<
+      UpdateAdminPrivilegesCommand,
+      { user: AnyUserInterface; token: string }
+    >(new UpdateAdminPrivilegesCommand(req.user as AnyUserInterface, userId, privileges));
   }
 
   @Put('users/:id/confirm')
   @ApiTags('Confirm regular user. Limited access.')
   @AccessControlList({ role: UserRole.ADMIN, rights: [AccessRights.confirmUser] })
   async confirm(@Param('id') _id: string) {
-    return this.usersService.confirm(_id);
+    return this.commandBus.execute<ConfirmUserCommand, { user: AnyUserInterface; token: string }>(
+      new ConfirmUserCommand(_id)
+    );
   }
 
   @Delete('users/:id/confirm')
   @ApiTags('Block regular user. Limited access.')
   @AccessControlList({ role: UserRole.ADMIN, rights: [AccessRights.blockUser] })
   async block(@Param('id') _id: string) {
-    return this.usersService.block(_id);
+    return this.commandBus.execute<BlockUserCommand, AnyUserInterface>(new BlockUserCommand(_id));
   }
 
   @Put('users/:id/promote')
   @ApiTags('Promote regular user (raise status). Limited access.')
   @AccessControlList({ role: UserRole.ADMIN, rights: [AccessRights.promoteUser] })
   async upgrade(@Param('id') _id: string) {
-    return this.usersService.upgrade(_id);
+    return this.commandBus.execute<UpgradeUserCommand, { user: AnyUserInterface; token: string }>(
+      new UpgradeUserCommand(_id)
+    );
   }
 
   @Delete('users/:id/promote')
@@ -152,7 +181,10 @@ export class AdminApiController {
   @ApiTags('Grant keys to regular user. Limited access.')
   @AccessControlList({ role: UserRole.ADMIN, rights: [AccessRights.giveKey] })
   async grantKeys(@Param('id') _id: string) {
-    return this.usersService.grantKeys(_id);
+    return this.commandBus.execute<
+      GrantVolunteerKeysCommand,
+      { user: AnyUserInterface; token: string }
+    >(new GrantVolunteerKeysCommand(_id));
   }
 
   @Delete('users/:id/keys')
