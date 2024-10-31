@@ -12,7 +12,7 @@ import { CategoriesModule } from '../../core/categories/categories.module';
 import { TasksModule } from '../../core/tasks/tasks.module';
 import { ContactsModule } from '../../core/contacts/contacts.module';
 import { AdminApiController } from './admin-api.controller';
-import { SetAdminPassordHandler } from '../../core/set-admin-password.handler';
+import { COMMANDS } from './commands-and-queries/commands';
 
 @Module({
   imports: [
@@ -26,6 +26,6 @@ import { SetAdminPassordHandler } from '../../core/set-admin-password.handler';
     CqrsModule,
   ],
   controllers: [AdminApiController],
-  providers: [UsersService, JwtStrategy, LocalStrategy, SetAdminPassordHandler],
+  providers: [...COMMANDS, UsersService, JwtStrategy, LocalStrategy],
 })
 export class AdminApiModule {}
