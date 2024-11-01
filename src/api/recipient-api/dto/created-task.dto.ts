@@ -12,13 +12,14 @@ export class CreatedTaskDto {
   address: string;
 
   @ApiProperty({
+    enum: ['created', 'accepted', 'completed', 'conflicted'],
     example: 'created',
     description: 'статус задачи',
   })
-  status: TaskStatus.CREATED;
+  status: TaskStatus;
 
   @ApiProperty({
-    enum: ['VIRGIN', 'PENDING', 'FULFILLED', 'REJECTED'],
+    enum: ['virgin', 'pending', 'fulfilled', 'rejected'],
     example: 'virgin',
     description: 'статус выполнения',
   })
@@ -50,7 +51,7 @@ export class CreatedTaskDto {
   recipient: InTaskUserDto;
 
   @ApiProperty({
-    enum: ['FULFILLED', 'REJECTED'],
+    enum: ['fulfilled', 'rejected'],
     example: 'fulfilled',
     description: 'статус выполнения выставляемый реципиентом',
   })
@@ -62,7 +63,7 @@ export class CreatedTaskDto {
   volunteer: InTaskUserDto | null;
 
   @ApiProperty({
-    enum: ['FULFILLED', 'REJECTED'],
+    enum: ['fulfilled', 'rejected'],
     example: 'fulfilled',
     description: 'статус выполнения выставляемый реципиентом',
   })
