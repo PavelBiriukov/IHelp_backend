@@ -19,7 +19,7 @@ export class CreatedTaskDto {
 
   @ApiProperty({
     enum: ['VIRGIN', 'PENDING', 'FULFILLED', 'REJECTED'],
-    example: 'virgin, pending, fulfilled, rejected или null',
+    example: 'virgin',
     description: 'статус выполнения',
   })
   adminResolve: ResolveStatus | null;
@@ -50,7 +50,8 @@ export class CreatedTaskDto {
   recipient: InTaskUserDto;
 
   @ApiProperty({
-    example: 'fulfilled, rejected или null',
+    enum: ['FULFILLED', 'REJECTED'],
+    example: 'fulfilled',
     description: 'статус выполнения выставляемый реципиентом',
   })
   recipientReport: TaskReport | null;
@@ -61,7 +62,8 @@ export class CreatedTaskDto {
   volunteer: InTaskUserDto | null;
 
   @ApiProperty({
-    example: 'fulfilled, rejected или null',
+    enum: ['FULFILLED', 'REJECTED'],
+    example: 'fulfilled',
     description: 'статус выполнения выставляемый реципиентом',
   })
   volunteerReport: TaskReport | null;
