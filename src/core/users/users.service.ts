@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InternalServerErrorException, NotFoundException } from '@nestjs/common/exceptions';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateAdminDto, CreateUserDto } from '../../common/dto/users.dto';
 import {
   AdminInterface,
@@ -29,7 +29,8 @@ import { User } from '../../datalake/users/schemas/user.schema';
 export class UsersService {
   constructor(
     private readonly usersRepo: UsersRepository,
-    private readonly commandBus: CommandBus
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus
   ) {}
 
   private static loginRequired: Array<string> = [];
@@ -147,11 +148,32 @@ export class UsersService {
     } */
     return this.create({
       ...dto,
-      password: await HashService.generateHash(dto.password),
+      password: await this.hashPassword(dto.password),
       isRoot: false,
       isActive: true,
       role: UserRole.ADMIN,
     });
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const newPassword = await HashService.generateHash(password);
+    return newPassword;
+  }
+
+  async setAdminPassword(userId: string, password: string): Promise<AnyUserInterface> {
+    const hash = await this.hashPassword(password);
+    const admin = (await this.usersRepo.findOneAndUpdate(
+      { _id: userId, role: UserRole.ADMIN },
+      { password: hash },
+      { new: true }
+    )) as User & AnyUserInterface;
+    if (!admin) {
+      throw new NotFoundException(`Пользователь с _id '${userId}' не найден<`);
+    }
+    if (admin.isRoot && admin.role === UserRole.ADMIN) {
+      throw new ForbiddenException(`Изменение пароля Главного администратора недоступно`);
+    }
+    return admin;
   }
 
   async confirm(_id: string): Promise<User & AnyUserInterface> {

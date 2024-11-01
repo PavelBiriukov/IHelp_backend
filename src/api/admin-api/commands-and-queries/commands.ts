@@ -1,3 +1,4 @@
+import { SetAdminPassordHandler } from '../../../core/set-admin-password.handler';
 import { GrantVolunteerKeysHandler } from '../../../core/grant-volunteer-keys.handler';
 import { ActivateUserHandler } from '../../../core/activate-user.handler';
 import { ConfirmUserHandler } from '../../../core/confirm-user.handler';
@@ -18,4 +19,5 @@ export const COMMANDS = [
   UpdateAdminPrivilegesHandler,
   BlockUserHandler,
   DeactivateAdminHandler,
+  SetAdminPassordHandler,
 ];
