@@ -12,11 +12,11 @@ export class SetAdminPassordHandler implements ICommandHandler<SetAdminPasswordC
   ) {}
 
   async execute({ userId, password }: SetAdminPasswordCommand) {
-    const admin = await this.userService.setAdminPassword(userId, password);
+    const user = await this.userService.setAdminPassword(userId, password);
     const token = await this.commandBus.execute<AuthenticateCommand, string>(
-      new AuthenticateCommand(admin)
+      new AuthenticateCommand(user)
     );
-    this.commandBus.execute<SendTokenCommand, string>(new SendTokenCommand(admin, token));
-    return { admin, token };
+    this.commandBus.execute<SendTokenCommand, string>(new SendTokenCommand(user, token));
+    return { user, token };
   }
 }
