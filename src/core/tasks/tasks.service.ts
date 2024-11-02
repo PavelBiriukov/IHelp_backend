@@ -170,7 +170,6 @@ export class TasksService {
     if (role === UserRole.RECIPIENT) {
       query.recipient = { _id: userId, address, avatar, name, phone };
     }
-    console.log(query, dto);
     return this.tasksRepo.findOneAndUpdate(query, dto);
   }
 

@@ -30,7 +30,9 @@ export class CreatedTaskDto {
   })
   moderator: InTaskUserDto | null;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'категория задачи',
+  })
   category: CategoryDto;
 
   @ApiProperty({
