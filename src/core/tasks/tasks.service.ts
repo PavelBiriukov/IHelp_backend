@@ -153,6 +153,11 @@ export class TasksService {
   }
 
   public async updateTask(taskId: string, user: AnyUserInterface, dto: Partial<CreateTaskDto>) {
+    const { location, ...data } = dto;
+    const task = {
+      ...data,
+      location: { type: 'Point', coordinates: location },
+    };
     const { _id: userId, role, address, avatar, name, phone } = user;
     if (!(role === UserRole.RECIPIENT || role === UserRole.ADMIN)) {
       throw new ForbiddenException(
@@ -169,7 +174,7 @@ export class TasksService {
     if (role === UserRole.RECIPIENT) {
       query.recipient = { _id: userId, address, avatar, name, phone };
     }
-    return this.tasksRepo.findOneAndUpdate(query, dto);
+    return this.tasksRepo.findOneAndUpdate(query, task);
   }
 
   public async getTasksByStatus(
