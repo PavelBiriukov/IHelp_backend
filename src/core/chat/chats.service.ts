@@ -91,7 +91,7 @@ const mockMessages: Array<MessageInterface> = [
     createdAt: new Date(),
     author: mockVolunteer,
     // chatId: new mongoose.Types.ObjectId().toHexString(),
-    chatId: '667becd00b1c6c36e084239a',
+    chatId: '671a520555bb110c3ad708d7',
   },
   {
     _id: new mongoose.Types.ObjectId().toHexString(),
@@ -119,7 +119,7 @@ const mockTaskChatMeta: TaskChatInfo = {
     type: 'TASK_CHAT',
     isActive: true,
     // taskId: new mongoose.Types.ObjectId().toHexString(),
-    taskId: '671a520555bb110c3ad708d4',
+    taskId: '67260b5b277c532fb4f9ea04',
     volunteer: mockVolunteer,
     recipient: mockRecipient,
     createdAt: new Date().toISOString(),
@@ -188,7 +188,7 @@ export class ChatService {
   constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async createTaskChat(metadata: CreateTaskChatDtoType) {
+  async createTaskChat(metadata: CreateTaskChatDtoType): Promise<TaskChatInfo> {
     // const chatEntity = new ChatEntity();
 
     // const newChat = await chatEntity.createChat('TASK_CHAT', metadata);
@@ -206,7 +206,13 @@ export class ChatService {
     // eslint-disable-next-line no-console
     console.log('Creating task chat.\nMeta:');
     console.dir(metadata);
-    return mockTaskChatMeta;
+    return {
+      meta: {
+        ...mockTaskChatMeta.meta,
+        taskId: metadata.taskId,
+      },
+      chats: [],
+    };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

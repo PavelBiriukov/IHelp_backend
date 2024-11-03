@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateTaskChatCommand } from '../common/commands/create-chat.command';
 import { ChatService } from './chat/chats.service';
-import { CreateTaskChatDtoType, TaskChatMetaInterface } from '../common/types/chats.types';
+import { CreateTaskChatDtoType } from '../common/types/chats.types';
 import { VolunteerInterface, RecipientInterface } from '../common/types/user.types';
 import { WebsocketApiGateway } from '../api/websocket-api/websocket-api.gateway';
 
@@ -23,9 +23,15 @@ export class CreateTaskChatHandler implements ICommandHandler<CreateTaskChatComm
     };
     const chatMeta = await this.chatService.createTaskChat(taskChatMetadata);
 
-    return this.websocketApiGateway.sendUsersTaskChatMeta(
+    return this.websocketApiGateway.sendChatMeta(
       [updatedTask.recipient._id, updatedTask.volunteer._id],
-      chatMeta as unknown as TaskChatMetaInterface
+      {
+        task: [chatMeta],
+        system: [],
+        conflict: [],
+        my: [],
+        moderated: [],
+      }
     );
   }
 }
