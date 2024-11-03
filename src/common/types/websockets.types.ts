@@ -16,6 +16,8 @@ export const wsMessageKind = {
   CHAT_PAGE_QUERY: `PageQuery`,
   CHAT_PAGE_CONTENT: 'ChatPage',
   DISCONNECTION_EVENT: 'Disconnection',
+  OPEN_CHAT_EVENT: 'OpenChat',
+  CLOSE_CHAT_EVENT: 'CloseChat',
 } as const;
 
 export type wsMessageKind = keyof typeof wsMessageKind;
@@ -62,3 +64,5 @@ export type wsConnectedUserData = {
 export type wsOpenedChatsData<T extends string> = {
   [key in T]: Array<string>;
 };
+
+export type WsNewMessage = Omit<MessageInterface, '_id' | 'createdAt'>;
