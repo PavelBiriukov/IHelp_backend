@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CommandBus } from '@nestjs/cqrs';
 import { AdminApiController } from './admin-api.controller';
 import { UsersService } from '../../core/users/users.service';
 import { TasksService } from '../../core/tasks/tasks.service';
@@ -59,6 +60,12 @@ describe('AdminApiController', () => {
           provide: ContactsService,
           useValue: {
             update: jest.fn(),
+          },
+        },
+        {
+          provide: CommandBus,
+          useValue: {
+            execute: jest.fn(),
           },
         },
       ],

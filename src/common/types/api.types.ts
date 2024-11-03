@@ -60,3 +60,7 @@ export type jwtPayload = {
 export interface EnrichedRequest extends Request {
   user?: User & (Volunteer | Recipient | Admin);
 }
+
+export interface UpdatePasswordDtoInterface {
+  password: string;
+}

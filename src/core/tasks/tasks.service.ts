@@ -8,6 +8,7 @@ import {
 import { FilterQuery } from 'mongoose';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { UpdateVolunteerProfileCommand } from '../../common/commands/update-volunteer-profile.command';
 import { TasksRepository } from '../../datalake/task/task.repository';
 import { UsersRepository } from '../../datalake/users/users.repository';
 import { CreateTaskDto, GetTasksDto } from '../../common/dto/tasks.dto';
@@ -26,7 +27,6 @@ import {
 import { AnyUserInterface, UserRole } from '../../common/types/user.types';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { User } from '../../datalake/users/schemas/user.schema';
-import { UsersService } from '../users/users.service';
 import { CreateTaskChatCommand } from '../../common/commands/create-chat.command';
 
 @Injectable()
@@ -35,7 +35,6 @@ export class TasksService {
     private readonly tasksRepo: TasksRepository,
     private readonly usersRepo: UsersRepository,
     private readonly categoryRepo: CategoryRepository,
-    private readonly usersService: UsersService,
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus
   ) {}
@@ -365,7 +364,7 @@ export class TasksService {
     return this.tasksRepo.deleteOne({ _id: taskId }, {});
   }
 
-  private async closeTaskAsFulfilled({
+  async closeTaskAsFulfilled({
     taskId,
     volunteerId,
     categoryPoints,
@@ -382,12 +381,15 @@ export class TasksService {
 
     let volunteerUpdateResult: PromiseSettledResult<User & AnyUserInterface>;
     let taskUpdateResult: PromiseSettledResult<Task>;
-    if (userIndex) {
+
+    if (!userIndex) {
       [volunteerUpdateResult, taskUpdateResult] = await Promise.allSettled([
-        this.usersService.updateVolunteerProfile(volunteer._id, {
-          score: volunteer.score + categoryPoints || volunteer.score,
-          tasksCompleted: volunteer.tasksCompleted + 1,
-        }),
+        this.commandBus.execute<UpdateVolunteerProfileCommand>(
+          new UpdateVolunteerProfileCommand(volunteer._id, {
+            score: volunteer.score + categoryPoints || volunteer.score,
+            tasksCompleted: volunteer.tasksCompleted + 1,
+          })
+        ),
         this.tasksRepo.findByIdAndUpdate(
           taskId,
           {
@@ -402,10 +404,13 @@ export class TasksService {
     }
 
     [volunteerUpdateResult, taskUpdateResult] = await Promise.allSettled([
-      this.usersService.updateVolunteerProfile(volunteer._id, {
-        score: volunteer.score + categoryPoints || volunteer.score,
-        tasksCompleted: volunteer.tasksCompleted + 1,
-      }),
+      this.commandBus.execute<UpdateVolunteerProfileCommand>(
+        new UpdateVolunteerProfileCommand(volunteer._id, {
+          score: volunteer.score + categoryPoints || volunteer.score,
+          tasksCompleted: volunteer.tasksCompleted + 1,
+        })
+      ),
+
       this.tasksRepo.findByIdAndUpdate(
         taskId,
         {
