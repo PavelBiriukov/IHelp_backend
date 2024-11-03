@@ -21,7 +21,7 @@ import { AnyUserInterface } from '../../common/types/user.types';
 import { GetUserChatsMetaQuery } from '../../common/queries/get-user-chats-meta.query';
 import { wsMessageKind, wsChatPageQueryPayload } from '../../common/types/websockets.types';
 import { NewMessageDto } from './dto/new-message.dto';
-import { MessageInterface, TaskChatMetaInterface } from '../../common/types/chats.types';
+import { AnyUserChatsResponseDtoInterface, MessageInterface } from '../../common/types/chats.types';
 import { GetChatMessagesQuery } from '../../common/queries/get-chat-messages.query';
 import { AuthService } from '../../core/auth/auth.service';
 import { SocketAuthGuard } from '../../common/guards/socket-auth.guard';
@@ -81,7 +81,7 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
 
     const userChatsMeta = await this.queryBus.execute(new GetUserChatsMetaQuery(user._id));
 
-    this.server.in(user._id).emit(wsMessageKind.REFRESH_CHATS_META_COMMAND, {
+    this.server.in(user._id).emit(wsMessageKind.INITIAL_CHATS_META_COMMAND, {
       data: userChatsMeta,
     });
   }
@@ -100,10 +100,14 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   private async getUserRoomData(userId: string) {
-    const userRoom = this.server.in(userId);
-    const userSocket = await userRoom.fetchSockets();
+    try {
+      const userRoom = this.server.in(userId);
+      const userSocket = await userRoom.fetchSockets();
 
-    return { userRoom, hasOnlineUser: userSocket.length >= 1 };
+      return { userRoom, hasOnlineUser: userSocket.length >= 1 };
+    } catch (e) {
+      return { userRoom: null, hasOnlineUser: false };
+    }
   }
 
   private async checkUserAuth(client: Socket) {
@@ -127,26 +131,22 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
     socket.disconnect();
   }
 
-  async sendUsersTaskChatMeta(userIds: string[], meta: TaskChatMetaInterface) {
-    const [recipientId, volunteerId] = userIds;
+  async sendChatMeta(userIds: string[], meta: AnyUserChatsResponseDtoInterface) {
+    const userRoomData = await Promise.allSettled(
+      userIds.map((userId) => this.getUserRoomData(userId))
+    );
 
-    const { userRoom: recipientRoom, hasOnlineUser: hasOnlineRecipient } =
-      await this.getUserRoomData(recipientId);
+    userRoomData.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        const { userRoom, hasOnlineUser } = result.value;
 
-    const { userRoom: volunteerRoom, hasOnlineUser: hasOnlineVolunteer } =
-      await this.getUserRoomData(volunteerId);
-
-    if (hasOnlineRecipient) {
-      recipientRoom.emit(wsMessageKind.REFRESH_CHATS_META_COMMAND, {
-        data: meta,
-      });
-    }
-
-    if (hasOnlineVolunteer) {
-      volunteerRoom.emit(wsMessageKind.REFRESH_CHATS_META_COMMAND, {
-        data: meta,
-      });
-    }
+        if (hasOnlineUser) {
+          userRoom.emit(wsMessageKind.NEW_CHATS_META_COMMAND, {
+            data: meta,
+          });
+        }
+      }
+    });
   }
 
   @SubscribeMessage(wsMessageKind.OPEN_CHAT_EVENT)

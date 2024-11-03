@@ -8,7 +8,9 @@ import { AnyUserInterface } from './user.types';
 
 export const wsMessageKind = {
   REFRESH_TOKEN_COMMAND: 'RefreshToken',
-  REFRESH_CHATS_META_COMMAND: 'RefreshMeta',
+  INITIAL_CHATS_META_COMMAND: 'InitialMeta', // При первом подключении
+  REFRESH_CHATS_META_COMMAND: 'RefreshMeta', // При обновлении любой сущности меты
+  NEW_CHATS_META_COMMAND: 'NewMeta', // При добавлении новой меты
   NEW_MESSAGE_COMMAND: 'NewMessage',
   REFRESH_CP_COMMAND: 'RefreshCP',
   REFRESH_CONTACTS_COMMAND: 'RefreshContacts',
@@ -16,6 +18,7 @@ export const wsMessageKind = {
   CHAT_PAGE_QUERY: `PageQuery`,
   CHAT_PAGE_CONTENT: 'ChatPage',
   DISCONNECTION_EVENT: 'Disconnection',
+  CONNECTION_EVENT: 'Connection',
   OPEN_CHAT_EVENT: 'OpenChat',
   CLOSE_CHAT_EVENT: 'CloseChat',
 } as const;
