@@ -236,7 +236,7 @@ export class TasksService {
       };
     }
     if (categoryId) {
-      query.category._id = categoryId;
+      query.category = { _id: categoryId };
     }
     if (!!start && !!end) {
       query.date = {
