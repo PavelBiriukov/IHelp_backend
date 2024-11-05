@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "5649e4d1-e5eb-467b-96eb-9aaec22d4a18",
+		"_postman_id": "b85629b7-71d4-44aa-a705-cc184fdd8e90",
 		"name": "yaPomogau",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "29546669"
+		"_exporter_id": "29255808"
 	},
 	"item": [
 		{
@@ -229,111 +229,1310 @@
 					"name": "admin",
 					"item": [
 						{
-							"name": "new admin",
-							"event": [
+							"name": "auth",
+							"item": [
 								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"create admin\", function () {",
-											"    pm.response.to.have.status(201);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"let increment = pm.collectionVariables.get('increment');",
-											"increment = +increment + 1;",
-											"pm.collectionVariables.set(\"admin_login\", `admin${increment}`);",
-											"pm.collectionVariables.set(\"admin_name\", `name${increment}`);",
-											"pm.collectionVariables.set(\"vkId\", `${12345678901234567890*Math.random()}`);",
-											"pm.collectionVariables.set(\"increment\", increment);",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"name\": \"{{admin_name}}\",\n  \"phone\": \"+78776637383\",\n  \"avatar\": \"https://kspshnik.com/pub/img/brienzersee_pre.jpg\",\n  \"address\": \"...не дом и не улица...\",\n  \"vkId\": \"{{vkId}}\",\n  \"login\": \"{{admin_login}}\",\n  \"password\": \"{{admin_password}}\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
+									"name": "auth login admin",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"login admin\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"const response = pm.response.json();",
+													"if(response?.token) pm.collectionVariables.set('admin_token', `Bearer ${response.token}`);"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
 										}
-									}
-								},
-								"url": {
-									"raw": "{{base_url}}/admin/create",
-									"host": [
-										"{{base_url}}"
 									],
-									"path": [
-										"admin",
-										"create"
-									]
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "e776c17dcf7b8de11a1647faa49b89c2",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\"login\":\"{{admin_login}}\",\"password\":\"{{admin_password}}\"}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/auth/administrative",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"auth",
+												"administrative"
+											]
+										}
+									},
+									"response": []
 								}
-							},
-							"response": []
+							]
 						},
 						{
-							"name": "login admin",
-							"event": [
+							"name": "admin",
+							"item": [
 								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"login admin\", function () {",
-											"    pm.response.to.have.status(201);",
-											"});",
-											"const response = pm.response.json();",
-											"pm.collectionVariables.set('admin_token', `Bearer ${response.token}`);"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\"login\":\"{{admin_login}}\",\"password\":\"{{admin_password}}\"}",
-									"options": {
-										"raw": {
-											"language": "json"
+									"name": "create",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"create admin\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if(pm.collectionVariables.get('admin_token')){",
+													"    let increment = pm.collectionVariables.get('increment');",
+													"    increment = +increment + 1;",
+													"    pm.collectionVariables.set(\"admin_login\", `admin${increment}`);",
+													"    pm.collectionVariables.set(\"admin_name\", `name${increment}`);",
+													"    pm.collectionVariables.set(\"vkId\", `${12345678901234567890*Math.random()}`);",
+													"    pm.collectionVariables.set(\"increment\", increment);",
+													"",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
 										}
-									}
-								},
-								"url": {
-									"raw": "{{base_url}}/auth/administrative",
-									"host": [
-										"{{base_url}}"
 									],
-									"path": [
-										"auth",
-										"administrative"
-									]
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"{{admin_name}}\",\n  \"phone\": \"+78776637383\",\n  \"avatar\": \"https://kspshnik.com/pub/img/brienzersee_pre.jpg\",\n  \"address\": \"...не дом и не улица...\",\n  \"vkId\": \"{{vkId}}\",\n  \"login\": \"{{admin_login}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/create",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"create"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "contacts",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/contacts",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"contacts"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "privileges",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/:id/privileges",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												":id",
+												"privileges"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "privileges",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"privileges\": [] // <- AdminPermission\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/:id/privileges",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												":id",
+												"privileges"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "privileges",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/:id/privileges",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												":id",
+												"privileges"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "activate",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/:id/activate",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												":id",
+												"activate"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "activate",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/:id/activate",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												":id",
+												"activate"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "all",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/all",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"all"
+											]
+										}
+									},
+									"response": []
 								}
-							},
-							"response": []
+							]
+						},
+						{
+							"name": "users",
+							"item": [
+								{
+									"name": "confirm",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/confirm",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"confirm"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "confirm",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/confirm",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"confirm"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "promote",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/promote",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"promote"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "promote",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/promote",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"promote"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "keys",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/keys",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"keys"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "keys",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/keys",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"keys"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "tasks",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/tasks",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"tasks"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "tasks",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id/tasks",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id",
+												"tasks"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "volunteers",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/volunteers",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												"volunteers"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "recipients",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/recipients",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												"recipients"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "unconfirmed",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/unconfirmed",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												"unconfirmed"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get by id",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/users/:id",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"users",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "blog",
+							"item": [
+								{
+									"name": "blog",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"title\": \"string\",\n    \"text\": \"string\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/blog",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"blog"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "blog",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"title\": \"string\",\n    \"text\": \"string\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/blog/:id",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"blog",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "blog",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"title\": \"string\",\n    \"text\": \"string\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/blog/:id",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"blog",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "category",
+							"item": [
+								{
+									"name": "category",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/category",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"category"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "categories",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/categories",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"categories"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "categories-id",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/categories/:id",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"categories",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "categories-id",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/categories/:id",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"categories",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "tasks",
+							"item": [
+								{
+									"name": "conflicted",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/tasks/conflicted",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"tasks",
+												"conflicted"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "resolve by id",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/tasks/:id/resolve",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"tasks",
+												":id",
+												"resolve"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "resolve by id fulfill",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/tasks/:id/resolve/fulfill",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"tasks",
+												":id",
+												"resolve",
+												"fulfill"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "resolve by id reject",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/tasks/:id/resolve/reject",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"tasks",
+												":id",
+												"resolve",
+												"reject"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": ""
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "moderated",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{admin_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"accessLevel\": UserStatus,\n    \"points\": number,\n    \"title\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/admin/tasks/moderated",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"tasks",
+												"moderated"
+											]
+										}
+									},
+									"response": []
+								}
+							]
 						}
 					]
 				}
@@ -386,7 +1585,44 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					""
+					"const tokenUrl = 'http://localhost:3001/auth/administrative';",
+					"",
+					"const dataReq = {",
+					"    method: 'POST',",
+					"    url: tokenUrl,",
+					"    header: {",
+					"        'content-type': 'application/json',",
+					"        'Authorization': 'Bearer e776c17dcf7b8de11a1647faa49b89c2'",
+					"    },",
+					"    body: {",
+					"        mode: 'raw',",
+					"        raw: JSON.stringify(",
+					"            {",
+					"                \"login\": pm.collectionVariables.get(\"admin_login\"),",
+					"                \"password\": pm.collectionVariables.get(\"admin_password\"),",
+					"            }",
+					"        )",
+					"    }",
+					"}",
+					"",
+					"",
+					"if(!pm.collectionVariables.get(\"admin_token\")){",
+					"    console.log('try login like admin')",
+					"    pm.sendRequest(dataReq, (err, res)=>{",
+					"",
+					"        if(err) console.log(err)",
+					"",
+					"        const respomse = res.json()",
+					"        const { accessToken, token } = respomse || {}",
+					"",
+					"        if(accessToken || token){",
+					"            pm.collectionVariables.set(\"admin_token\", accessToken || token)",
+					"            console.log('good')",
+					"        }else{",
+					"            console.log('err', respomse)",
+					"        }",
+					"    })",
+					"}"
 				]
 			}
 		},
@@ -413,11 +1649,11 @@
 		},
 		{
 			"key": "admin_name",
-			"value": ""
+			"value": "admin1"
 		},
 		{
 			"key": "admin_login",
-			"value": "",
+			"value": "admin1",
 			"type": "string"
 		},
 		{
@@ -437,7 +1673,7 @@
 		},
 		{
 			"key": "admin_password",
-			"value": "0987654321",
+			"value": "admin",
 			"type": "string"
 		}
 	]

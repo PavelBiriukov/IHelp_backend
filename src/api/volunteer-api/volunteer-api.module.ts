@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { TasksModule } from '../../core/tasks/tasks.module';
 import { TasksService } from '../../core/tasks/tasks.service';
 import { TasksRepositoryModule } from '../../datalake/task/tasks-repository.module';
@@ -16,6 +17,7 @@ import { VolunteerApiController } from './volunteer-api.controller';
     TasksModule,
     UsersModule,
     CategoriesModule,
+    CqrsModule,
   ],
   controllers: [VolunteerApiController],
   providers: [TasksService],

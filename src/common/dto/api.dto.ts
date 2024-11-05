@@ -1,20 +1,8 @@
 /* eslint-disable max-classes-per-file */
 
-import {
-  IsEnum,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsPhoneNumber,
-  IsString,
-  IsUrl,
-  ValidateNested,
-} from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { IsIn, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, IsUrl } from 'class-validator';
 import { NewProfileInterface } from '../types/api.types';
-import { GeoCoordinates, PointGeoJSONInterface } from '../types/point-geojson.types';
+import { PointGeoJSONInterface } from '../types/point-geojson.types';
 import { IsCoords } from '../decorators/is-coords';
 import { AdminPermission, UserRole, UserStatus } from '../types/user.types';
 
@@ -24,7 +12,6 @@ export class PointGeoJSONDto implements PointGeoJSONInterface {
   @IsNotEmpty()
   coordinates: GeoCoordinates;
 
-  @ApiProperty()
   @IsIn(['Point'])
   type: 'Point';
 }

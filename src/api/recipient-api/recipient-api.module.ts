@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { RecipientApiController } from './recipient-api.controller';
 import { TasksModule } from '../../core/tasks/tasks.module';
 import { TasksService } from '../../core/tasks/tasks.service';
@@ -16,6 +17,7 @@ import { CategoriesModule } from '../../core/categories/categories.module';
     TasksModule,
     UsersModule,
     CategoriesModule,
+    CqrsModule,
   ],
   controllers: [RecipientApiController],
   providers: [TasksService],
