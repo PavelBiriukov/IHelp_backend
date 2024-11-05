@@ -5,11 +5,17 @@ export class AdminLoginDto {
   @IsString()
   @MinLength(1)
   @MaxLength(64)
-  @ApiProperty()
+  @ApiProperty({
+    example: 'admin',
+    description: 'Логин администратора',
+  })
   login: string;
 
-  @ApiProperty()
   @IsString()
   @MinLength(2)
+  @ApiProperty({
+    example: 'vwonvow',
+    description: 'Пароль администратора',
+  })
   password: string;
 }

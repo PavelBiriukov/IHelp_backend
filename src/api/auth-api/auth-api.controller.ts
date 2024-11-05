@@ -17,11 +17,12 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { AnswerAdminOkDto, AnswerOkDto, UserDto } from '../../common/dto/api.dto';
+import { AnswerAdminOkDto, AnswerOkDto } from '../../common/dto/api.dto';
 import { VkLoginDto } from './dto/vk-login.dto';
 import { AuthService } from '../../core/auth/auth.service';
 import { VKNewUserDto } from './dto/vk-new.dto';
@@ -37,6 +38,8 @@ import { AuthenticateCommand } from '../../common/commands/authenticate.command'
 import { CheckJwtCommand } from '../../common/commands/check-jwt.command';
 import { AnyUserInterface } from '../../common/types/user.types';
 import { AdminLoginDto } from './dto/admin.dto';
+import { schema } from '../../common/utils/apiSchemaObj';
+import { UserDto } from '../admin-api/dto/user.dto';
 
 const { HTTP_STATUS_OK, HTTP_STATUS_CREATED } = constants;
 
@@ -53,29 +56,16 @@ export class AuthApiController {
   @Post('vk')
   @ApiOperation({ summary: 'Авторизация пользователя' })
   @ApiBody({ type: VkLoginDto })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: 'Авторизация прошла успешно.',
     type: AnswerOkDto,
   })
   @ApiBadRequestResponse({
-    schema: {
-      type: 'object',
-      example: {
-        message: ['string'],
-        error: 'Bad Request',
-        statusCode: 400,
-      },
-    },
+    schema: schema(['string'], 'Bad Request', 400),
     description: 'Произошла ошибка',
   })
   @ApiUnauthorizedResponse({
-    schema: {
-      type: 'object',
-      example: {
-        message: 'Unauthorized',
-        statusCode: 401,
-      },
-    },
+    schema: schema('Unauthorized', null, 401),
     description: 'Неверное имя пользователя или пароль',
   })
   @HttpCode(HTTP_STATUS_OK)
@@ -94,24 +84,11 @@ export class AuthApiController {
     type: AnswerOkDto,
   })
   @ApiInternalServerErrorResponse({
-    schema: {
-      type: 'object',
-      example: {
-        statusCode: 500,
-        message: 'Internal server error',
-      },
-    },
+    schema: schema('Internal server error', null, 500),
     description: 'Внутрення ошибка на сервере',
   })
   @ApiBadRequestResponse({
-    schema: {
-      type: 'object',
-      example: {
-        message: ['string'],
-        error: 'Bad Request',
-        statusCode: 400,
-      },
-    },
+    schema: schema(['string'], 'Bad Request', 400),
     description: 'Произошла ошибка',
   })
   async register(@Body() dto: VKNewUserDto) {
@@ -132,18 +109,12 @@ export class AuthApiController {
   @Post('administrative')
   @ApiOperation({ summary: 'Авторизация администратора' })
   @ApiBody({ type: AdminLoginDto })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: 'Авторизация прошла успешно.',
     type: AnswerAdminOkDto,
   })
   @ApiUnauthorizedResponse({
-    schema: {
-      type: 'object',
-      example: {
-        message: 'Unauthorized',
-        statusCode: 401,
-      },
-    },
+    schema: schema('Unauthorized', null, 401),
     description: 'Неверное имя пользователя или пароль',
   })
   @HttpCode(HTTP_STATUS_OK)
@@ -162,29 +133,16 @@ export class AuthApiController {
   @Post('mock')
   @ApiOperation({ summary: 'Моковая авторизация, используется только для разработки' })
   @ApiBody({ type: MockLoginDto })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: 'Авторизация прошла успешно.',
     type: AnswerOkDto,
   })
   @ApiBadRequestResponse({
-    schema: {
-      type: 'object',
-      example: {
-        message: ['string'],
-        error: 'Bad Request',
-        statusCode: 400,
-      },
-    },
+    schema: schema(['string'], 'Bad Request', 400),
     description: 'Произошла ошибка',
   })
   @ApiUnauthorizedResponse({
-    schema: {
-      type: 'object',
-      example: {
-        message: 'Unauthorized',
-        statusCode: 401,
-      },
-    },
+    schema: schema('Unauthorized', null, 401),
     description: 'Неверный VKID',
   })
   @HttpCode(HTTP_STATUS_OK)
@@ -202,28 +160,16 @@ export class AuthApiController {
   @Public()
   @Get('token')
   @ApiOperation({ summary: 'Проверяет токен' })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: 'Токен правильный.',
     type: UserDto,
   })
   @ApiUnauthorizedResponse({
-    schema: {
-      type: 'object',
-      example: {
-        message: 'Unauthorized',
-        statusCode: 401,
-      },
-    },
+    schema: schema('Unauthorized', null, 401),
     description: 'Токен не подходит',
   })
   @ApiInternalServerErrorResponse({
-    schema: {
-      type: 'object',
-      example: {
-        statusCode: 500,
-        message: 'Internal server error',
-      },
-    },
+    schema: schema('Internal server error', null, 500),
     description: 'Внутрення ошибка на сервере',
   })
   @HttpCode(HTTP_STATUS_OK)
