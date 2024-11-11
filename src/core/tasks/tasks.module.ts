@@ -6,6 +6,8 @@ import { UsersRepositoryModule } from '../../datalake/users/users-repository.mod
 import { CategoryRepositoryModule } from '../../datalake/category/category-repository.module';
 import { UsersModule } from '../users/users.module';
 import { COMMANDS } from './commands-and-queries/commands';
+import { ChatsModule } from '../chat/chats.module';
+import { ChatsRepositoryModule } from '../../datalake/chats/chats-repository.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { COMMANDS } from './commands-and-queries/commands';
     CategoryRepositoryModule,
     UsersModule,
     CqrsModule,
+    ChatsModule,
+    ChatsRepositoryModule,
   ],
   providers: [...COMMANDS, TasksService],
   exports: [TasksService],
