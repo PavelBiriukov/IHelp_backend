@@ -109,8 +109,6 @@ export class TasksService {
         } равен null.`,
       });
     }
-    console.log('moderation');
-
     await this.commandBus.execute(new CreateConflictChatsCommand(taskId, moderator));
     return this.tasksRepo.findOneAndUpdate(
       { _id: taskId, status: TaskStatus.CONFLICTED, adminResolve: ResolveStatus.VIRGIN },
