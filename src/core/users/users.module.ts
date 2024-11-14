@@ -1,19 +1,26 @@
-import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { forwardRef, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { HttpModule } from '@nestjs/axios';
 
 import { UsersRepositoryModule } from '../../datalake/users/users-repository.module';
 import { HashModule } from '../../common/hash/hash.module';
 import { HashService } from '../../common/hash/hash.service';
-import { AuthService } from '../auth/auth.service';
 import { UsersService } from './users.service';
 import { COMMANDS } from './commands-and-queries/commands';
-import { WebsocketApiGateway } from '../../api/websocket-api/websocket-api.gateway';
+// eslint-disable-next-line import/no-cycle
+import { WebsocketApiModule } from '../../api/websocket-api/websocket-api.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [UsersRepositoryModule, HashModule, JwtModule, HttpModule, CqrsModule],
-  providers: [...COMMANDS, UsersService, HashService, AuthService, WebsocketApiGateway],
+  imports: [
+    forwardRef(() => AuthModule),
+    UsersRepositoryModule,
+    HashModule,
+    HttpModule,
+    CqrsModule,
+    WebsocketApiModule,
+  ],
+  providers: [...COMMANDS, UsersService, HashService],
   exports: [UsersService],
 })
 export class UsersModule {}
