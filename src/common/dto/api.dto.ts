@@ -76,7 +76,7 @@ export class AdminDto {
       'EDIT_BLOG',
       'SET_CATEGORY_POINTS',
     ],
-    example: 'CONFIRM_USER',
+    example: ['CONFIRM_USER', 'CREATE_TASK'],
     description: 'Права администратора',
   })
   permissions: Array<AdminPermission>;
@@ -119,7 +119,7 @@ export class AdminDto {
   vkId: string;
 
   @ApiProperty({
-    enum: ['Admin', 'Recipient', 'Volunteer', 'GeneralUser'],
+    enum: ['Admin'],
     example: 'Admin',
     description: 'Роль пользователя',
   })
