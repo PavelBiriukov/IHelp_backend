@@ -11,15 +11,13 @@ export class BlogService {
   ) {}
 
   async create(dto: Partial<PostDTO>, user) {
-    const { name, phone, avatar, address, _id } = user;
+    const { name, avatar, _id } = user;
     return this.blogRepo.create({
       ...dto,
       author: {
         name,
-        phone,
         avatar,
-        address,
-        _id,
+        userId: _id,
       },
     });
   }
@@ -35,7 +33,7 @@ export class BlogService {
   async updatePost(postId: string, updateDto: PostDTO, user) {
     const { author } = await this.blogRepo.findById(postId);
 
-    if (!user.isRoot && author._id !== user.id) {
+    if (!user.isRoot && author.userId !== user.id) {
       throw new BadRequestException('Вы не можете редактировать чужой пост');
     }
 
@@ -45,7 +43,7 @@ export class BlogService {
   async deletePost(postId: string, user) {
     const { author } = await this.blogRepo.findById(postId);
 
-    if (!user.isRoot && author._id !== user.id) {
+    if (!user.isRoot && author.userId !== user.id) {
       throw new BadRequestException('Вы не можете удалить чужой пост');
     }
 
