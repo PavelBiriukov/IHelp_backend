@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PostDTO } from '../../common/dto/blog.dto';
 import { BlogPostRepository } from '../../datalake/blog-post/blog.repository';
 import { UsersRepository } from '../../datalake/users/users.repository';
@@ -33,8 +33,8 @@ export class BlogService {
   async updatePost(postId: string, updateDto: PostDTO, user) {
     const { author } = await this.blogRepo.findById(postId);
 
-    if (!user.isRoot && author.userId !== user.id) {
-      throw new BadRequestException('Вы не можете редактировать чужой пост');
+    if (!user.isRoot && author.userId !== user._id) {
+      throw new ForbiddenException('Вы не можете редактировать чужой пост');
     }
 
     return this.blogRepo.findByIdAndUpdate(postId, updateDto, {});
@@ -43,8 +43,8 @@ export class BlogService {
   async deletePost(postId: string, user) {
     const { author } = await this.blogRepo.findById(postId);
 
-    if (!user.isRoot && author.userId !== user.id) {
-      throw new BadRequestException('Вы не можете удалить чужой пост');
+    if (!user.isRoot && author.userId !== user._id) {
+      throw new ForbiddenException('Вы не можете удалить чужой пост');
     }
 
     await this.blogRepo.findByIdAndDelete(postId);
