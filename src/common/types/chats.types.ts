@@ -155,6 +155,10 @@ export interface GetAdminChatsResponseDtoInterface {
   conflict: Array<ConflictChatInfo>;
 }
 
+export type AnyUserChatsResponseDtoInterface =
+  | GetUserChatsResponseDtoInterface
+  | GetAdminChatsResponseDtoInterface;
+
 export type CreateTaskChatDtoType = Pick<
   TaskChatInterface,
   'taskId' | 'type' | 'volunteer' | 'recipient'

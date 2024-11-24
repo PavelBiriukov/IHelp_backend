@@ -1,8 +1,8 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes } from 'mongoose';
 import { BlogPostInterface } from '../../../common/types/blog-post.types';
-import { UserProfile } from '../../../common/types/user.types';
-import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-definition';
+import { AuthorProfile } from '../../../common/types/user.types';
+import { rawAuthorProfile } from '../../../common/constants/mongoose-fields-raw-definition';
 
 @Schema({
   timestamps: true,
@@ -12,8 +12,8 @@ import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-de
   },
 })
 export class BlogPost extends Document implements BlogPostInterface {
-  @Prop({ type: raw(rawUserProfile), required: true, immutable: true })
-  author: UserProfile;
+  @Prop({ type: raw(rawAuthorProfile), required: true, immutable: true })
+  author: AuthorProfile;
 
   @Prop({ required: true, type: SchemaTypes.String })
   title: string;

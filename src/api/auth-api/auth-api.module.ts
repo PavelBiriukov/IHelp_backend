@@ -3,8 +3,6 @@ import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AuthApiController } from './auth-api.controller';
-import { AuthService } from '../../core/auth/auth.service';
-import { UsersService } from '../../core/users/users.service';
 import { AuthModule } from '../../core/auth/auth.module';
 import { UsersModule } from '../../core/users/users.module';
 import { UsersRepositoryModule } from '../../datalake/users/users-repository.module';
@@ -23,6 +21,6 @@ import { COMMANDS } from './commands-and-queries/commands';
     CqrsModule,
   ],
   controllers: [AuthApiController],
-  providers: [...COMMANDS, AuthService, UsersService, HashService],
+  providers: [...COMMANDS, HashService],
 })
 export class AuthApiModule {}

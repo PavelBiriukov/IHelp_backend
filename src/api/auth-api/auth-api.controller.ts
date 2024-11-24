@@ -12,9 +12,21 @@ import {
 } from '@nestjs/common';
 import { constants } from 'http2';
 import { CommandBus /* , QueryBus */ } from '@nestjs/cqrs';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { AnswerAdminOkDto, AnswerOkDto } from '../../common/dto/api.dto';
 import { VkLoginDto } from './dto/vk-login.dto';
 import { AuthService } from '../../core/auth/auth.service';
 import { VKNewUserDto } from './dto/vk-new.dto';
+import { MockLoginDto } from './dto/vk-mock-login.dto';
 import { UsersService } from '../../core/users/users.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { AdminLoginAuthGuard } from '../../common/guards/local-auth.guard';
@@ -25,13 +37,13 @@ import { User } from '../../datalake/users/schemas/user.schema';
 import { AuthenticateCommand } from '../../common/commands/authenticate.command';
 import { CheckJwtCommand } from '../../common/commands/check-jwt.command';
 import { AnyUserInterface } from '../../common/types/user.types';
+import { AdminLoginDto } from './dto/admin.dto';
+import { schema } from '../../common/utils/apiSchemaObj';
+import { UserDto } from '../admin-api/dto/user.dto';
 
 const { HTTP_STATUS_OK, HTTP_STATUS_CREATED } = constants;
 
-type mockLoginDto = {
-  vkId: string;
-};
-
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthApiController {
   constructor(
@@ -42,6 +54,20 @@ export class AuthApiController {
 
   @Public()
   @Post('vk')
+  @ApiOperation({ summary: 'Авторизация пользователя' })
+  @ApiBody({ type: VkLoginDto })
+  @ApiOkResponse({
+    description: 'Авторизация прошла успешно.',
+    type: AnswerOkDto,
+  })
+  @ApiBadRequestResponse({
+    schema: schema(['string'], 'Bad Request', 400),
+    description: 'Произошла ошибка',
+  })
+  @ApiUnauthorizedResponse({
+    schema: schema('Unauthorized', null, 401),
+    description: 'Неверное имя пользователя или пароль',
+  })
   @HttpCode(HTTP_STATUS_OK)
   async vkLogin(@Body() dto: VkLoginDto) {
     // return this.authService.loginVK(dto);
@@ -51,6 +77,20 @@ export class AuthApiController {
   @Public()
   @Post('new')
   @HttpCode(HTTP_STATUS_CREATED)
+  @ApiOperation({ summary: 'Создает нового пользователя: волонтер или реципиент' })
+  @ApiBody({ type: VKNewUserDto })
+  @ApiCreatedResponse({
+    description: 'Пользователь успешно создан.',
+    type: AnswerOkDto,
+  })
+  @ApiInternalServerErrorResponse({
+    schema: schema('Internal server error', null, 500),
+    description: 'Внутрення ошибка на сервере',
+  })
+  @ApiBadRequestResponse({
+    schema: schema(['string'], 'Bad Request', 400),
+    description: 'Произошла ошибка',
+  })
   async register(@Body() dto: VKNewUserDto) {
     const user = await this.commandBus.execute<CreateUserCommand, POJOType<User>>(
       new CreateUserCommand(dto)
@@ -67,6 +107,16 @@ export class AuthApiController {
   @Public()
   @UseGuards(AdminLoginAuthGuard)
   @Post('administrative')
+  @ApiOperation({ summary: 'Авторизация администратора' })
+  @ApiBody({ type: AdminLoginDto })
+  @ApiOkResponse({
+    description: 'Авторизация прошла успешно.',
+    type: AnswerAdminOkDto,
+  })
+  @ApiUnauthorizedResponse({
+    schema: schema('Unauthorized', null, 401),
+    description: 'Неверное имя пользователя или пароль',
+  })
   @HttpCode(HTTP_STATUS_OK)
   async administrative(@Req() req: Express.Request) {
     if (req.user) {
@@ -81,8 +131,22 @@ export class AuthApiController {
 
   @Public()
   @Post('mock')
+  @ApiOperation({ summary: 'Моковая авторизация, используется только для разработки' })
+  @ApiBody({ type: MockLoginDto })
+  @ApiOkResponse({
+    description: 'Авторизация прошла успешно.',
+    type: AnswerOkDto,
+  })
+  @ApiBadRequestResponse({
+    schema: schema(['string'], 'Bad Request', 400),
+    description: 'Произошла ошибка',
+  })
+  @ApiUnauthorizedResponse({
+    schema: schema('Unauthorized', null, 401),
+    description: 'Неверный VKID',
+  })
   @HttpCode(HTTP_STATUS_OK)
-  public async mockLogin(@Body() dto: mockLoginDto) {
+  public async mockLogin(@Body() dto: MockLoginDto) {
     const { vkId: mockId } = dto;
     const user = await this.usersService.checkVKCredential(mockId);
     if (user) {
@@ -95,6 +159,19 @@ export class AuthApiController {
 
   @Public()
   @Get('token')
+  @ApiOperation({ summary: 'Проверяет токен' })
+  @ApiOkResponse({
+    description: 'Токен правильный.',
+    type: UserDto,
+  })
+  @ApiUnauthorizedResponse({
+    schema: schema('Unauthorized', null, 401),
+    description: 'Токен не подходит',
+  })
+  @ApiInternalServerErrorResponse({
+    schema: schema('Internal server error', null, 500),
+    description: 'Внутрення ошибка на сервере',
+  })
   @HttpCode(HTTP_STATUS_OK)
   public async checkToken(@Headers() headers: Record<string, string>) {
     const { authorization } = headers;
