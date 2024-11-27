@@ -52,3 +52,9 @@ export const rawCategory = {
   points: { required: true, type: mongoose.SchemaTypes.Number },
   title: { required: true, type: mongoose.SchemaTypes.String },
 };
+
+export const rawAuthorProfile = {
+  name: { require: true, type: mongoose.SchemaTypes.String },
+  avatar: { default: '', type: mongoose.SchemaTypes.String },
+  userId: { require: true, type: mongoose.SchemaTypes.String },
+};

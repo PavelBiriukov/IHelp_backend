@@ -6,6 +6,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { UpdateVolunteerProfileCommand } from '../../common/commands/update-volunteer-profile.command';
 import { TasksRepository } from '../../datalake/task/task.repository';
 import { UsersRepository } from '../../datalake/users/users.repository';
 import { CreateTaskDto, GetTasksDto } from '../../common/dto/tasks.dto';
@@ -24,7 +27,7 @@ import {
 import { AnyUserInterface, UserRole } from '../../common/types/user.types';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { User } from '../../datalake/users/schemas/user.schema';
-import { UsersService } from '../users/users.service';
+import { CreateTaskChatCommand } from '../../common/commands/create-chat.command';
 
 @Injectable()
 export class TasksService {
@@ -32,7 +35,8 @@ export class TasksService {
     private readonly tasksRepo: TasksRepository,
     private readonly usersRepo: UsersRepository,
     private readonly categoryRepo: CategoryRepository,
-    private readonly usersService: UsersService
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus
   ) {}
 
   public async create(dto: CreateTaskDto) {
@@ -149,6 +153,11 @@ export class TasksService {
   }
 
   public async updateTask(taskId: string, user: AnyUserInterface, dto: Partial<CreateTaskDto>) {
+    const { location, ...data } = dto;
+    const task = {
+      ...data,
+      location: { type: 'Point', coordinates: location },
+    };
     const { _id: userId, role, address, avatar, name, phone } = user;
     if (!(role === UserRole.RECIPIENT || role === UserRole.ADMIN)) {
       throw new ForbiddenException(
@@ -165,7 +174,7 @@ export class TasksService {
     if (role === UserRole.RECIPIENT) {
       query.recipient = { _id: userId, address, avatar, name, phone };
     }
-    return this.tasksRepo.findOneAndUpdate(query, dto);
+    return this.tasksRepo.findOneAndUpdate(query, task);
   }
 
   public async getTasksByStatus(
@@ -232,7 +241,7 @@ export class TasksService {
       };
     }
     if (categoryId) {
-      query.category._id = categoryId;
+      query.category = { _id: categoryId };
     }
     if (!!start && !!end) {
       query.date = {
@@ -277,11 +286,13 @@ export class TasksService {
       throw new ForbiddenException('Вам нельзя брать задачи из этой категории!');
     }
     const { name, phone, avatar, address, _id, vkId, role } = volunteer;
-    return this.tasksRepo.findByIdAndUpdate(
+    const updatedTask = await this.tasksRepo.findByIdAndUpdate(
       taskId,
       { status: TaskStatus.ACCEPTED, volunteer: { name, phone, avatar, address, _id, vkId, role } },
       { new: true }
     );
+    await this.commandBus.execute(new CreateTaskChatCommand({ taskId, updatedTask }));
+    return updatedTask;
   }
 
   public async reportTask(taskId: string, userId: string, userRole: UserRole, result: TaskReport) {
@@ -358,7 +369,7 @@ export class TasksService {
     return this.tasksRepo.deleteOne({ _id: taskId }, {});
   }
 
-  private async closeTaskAsFulfilled({
+  async closeTaskAsFulfilled({
     taskId,
     volunteerId,
     categoryPoints,
@@ -373,14 +384,17 @@ export class TasksService {
       });
     }
 
-    let volunteerUpdateResult: PromiseSettledResult<User & Volunteer>;
+    let volunteerUpdateResult: PromiseSettledResult<User & AnyUserInterface>;
     let taskUpdateResult: PromiseSettledResult<Task>;
-    if (userIndex) {
+
+    if (!userIndex) {
       [volunteerUpdateResult, taskUpdateResult] = await Promise.allSettled([
-        this.usersService.updateVolunteerProfile(volunteer._id, {
-          score: volunteer.score + categoryPoints || volunteer.score,
-          tasksCompleted: volunteer.tasksCompleted + 1,
-        }),
+        this.commandBus.execute<UpdateVolunteerProfileCommand>(
+          new UpdateVolunteerProfileCommand(volunteer._id, {
+            score: volunteer.score + categoryPoints || volunteer.score,
+            tasksCompleted: volunteer.tasksCompleted + 1,
+          })
+        ),
         this.tasksRepo.findByIdAndUpdate(
           taskId,
           {
@@ -395,10 +409,13 @@ export class TasksService {
     }
 
     [volunteerUpdateResult, taskUpdateResult] = await Promise.allSettled([
-      this.usersService.updateVolunteerProfile(volunteer._id, {
-        score: volunteer.score + categoryPoints || volunteer.score,
-        tasksCompleted: volunteer.tasksCompleted + 1,
-      }),
+      this.commandBus.execute<UpdateVolunteerProfileCommand>(
+        new UpdateVolunteerProfileCommand(volunteer._id, {
+          score: volunteer.score + categoryPoints || volunteer.score,
+          tasksCompleted: volunteer.tasksCompleted + 1,
+        })
+      ),
+
       this.tasksRepo.findByIdAndUpdate(
         taskId,
         {
@@ -460,5 +477,26 @@ export class TasksService {
     }
 
     return updatedTask;
+  }
+
+  public async updateTaskPoints(points: number, id: string) {
+    const res = await this.tasksRepo.updateMany(
+      {
+        'category._id': id,
+        status: { $in: [TaskStatus.ACCEPTED, TaskStatus.CREATED, TaskStatus.CONFLICTED] },
+      },
+      {
+        $set: {
+          'category.points': points,
+        },
+      }
+    );
+    if (!res) {
+      throw new InternalServerErrorException('Internal Server Error', {
+        cause: 'Обновление поинтов задачи не выполнено или выполнено с ошибкой',
+      });
+    }
+
+    return res;
   }
 }

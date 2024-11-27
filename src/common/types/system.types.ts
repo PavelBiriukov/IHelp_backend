@@ -1,5 +1,6 @@
 export type ServerConfiguration = {
   port: number;
+  ws_port: number;
   cors_origins?: string;
   http_address?: string;
 };

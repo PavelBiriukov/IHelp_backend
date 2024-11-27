@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 
+// eslint-disable-next-line import/no-cycle
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -24,5 +25,6 @@ import { LocalStrategy } from './strategies/local.strategy';
     }),
   ],
   providers: [AuthService, JwtService, JwtStrategy, LocalStrategy],
+  exports: [AuthService, JwtService],
 })
 export class AuthModule {}

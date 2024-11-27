@@ -1,12 +1,26 @@
-import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { forwardRef, Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
+import { HttpModule } from '@nestjs/axios';
+
 import { UsersRepositoryModule } from '../../datalake/users/users-repository.module';
 import { HashModule } from '../../common/hash/hash.module';
 import { HashService } from '../../common/hash/hash.service';
+import { UsersService } from './users.service';
+import { COMMANDS } from './commands-and-queries/commands';
+// eslint-disable-next-line import/no-cycle
+import { WebsocketApiModule } from '../../api/websocket-api/websocket-api.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [UsersRepositoryModule, HashModule],
-  providers: [UsersService, HashService],
+  imports: [
+    forwardRef(() => AuthModule),
+    UsersRepositoryModule,
+    HashModule,
+    HttpModule,
+    CqrsModule,
+    WebsocketApiModule,
+  ],
+  providers: [...COMMANDS, UsersService, HashService],
   exports: [UsersService],
 })
 export class UsersModule {}

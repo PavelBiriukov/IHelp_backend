@@ -11,34 +11,50 @@ import {
   IsString,
 } from 'class-validator';
 import { CreateTaskDto } from '../../../common/dto/tasks.dto';
-import { GeoCoordinates } from '../../../common/types/point-geojson.types';
 
 export class ApiCreateTaskDto implements Omit<CreateTaskDto, 'recipientId'> {
-  @ApiProperty()
+  @ApiProperty({
+    example: '66d193fa211c8a47b0f07785',
+    description: 'Айди категории',
+    required: true,
+  })
   @IsDefined()
   @IsNotEmpty()
   @IsString()
   categoryId: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({
+    required: true,
+    type: [Number, Number],
+    example: [58, 58],
+    description: 'координаты',
+  })
   @IsArray()
   @ArrayMinSize(2)
   @ArrayMaxSize(2)
   @IsNumber({}, { each: true })
-  location: GeoCoordinates;
+  location: [number, number];
 
   @ApiProperty()
   @IsOptional()
   @IsDateString()
   date: Date | null;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Москва, Красная Площадь, д.1',
+    description: 'Адрес',
+    required: true,
+  })
   @IsDefined()
   @IsNotEmpty()
   @IsString()
   address: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Погулять с собачкой',
+    description: 'Описание задачи',
+    required: true,
+  })
   @IsDefined()
   @IsNotEmpty()
   @IsString()
