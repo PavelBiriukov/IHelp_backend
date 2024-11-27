@@ -83,6 +83,12 @@ export interface ConflictChatWithRecipientInterface
     ConflictChatWithRecipientModelInterface,
     MongooseIdAndTimestampsInterface {}
 
+export type AnyChatModelInterface =
+  | TaskChatInterface
+  | SystemChatInterface
+  | ConflictChatWithVolunteerInterface
+  | ConflictChatWithRecipientInterface;
+
 export interface WatermarkInterface {
   watermark: string;
   unreads: number;
