@@ -1,8 +1,8 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { RevokeAdminPrivilegesCommand } from '../common/commands/revoke-admin-privileges.command';
+import { RevokeAdminPrivilegesCommand } from '../common/commands-and-queries/revoke-admin-privileges.command';
 import { UsersService } from './users/users.service';
-import { AuthenticateCommand } from '../common/commands/authenticate.command';
-import { SendTokenCommand } from '../common/commands/send-token.command';
+import { AuthenticateCommand } from '../common/commands-and-queries/authenticate.command';
+import { SendTokenCommand } from '../common/commands-and-queries/send-token.command';
 
 @CommandHandler(RevokeAdminPrivilegesCommand)
 export class RevokeAdminPrivilegesHandler implements ICommandHandler<RevokeAdminPrivilegesCommand> {

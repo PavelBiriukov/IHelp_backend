@@ -24,7 +24,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { CommandBus } from '@nestjs/cqrs';
-import { SetAdminPasswordCommand } from '../../common/commands/set-admin-password.command';
+import { SetAdminPasswordCommand } from '../../common/commands-and-queries/set-admin-password.command';
 import { UsersService } from '../../core/users/users.service';
 import { BlogService } from '../../core/blog/blog.service';
 import { CategoriesService } from '../../core/categories/categories.service';
@@ -54,15 +54,15 @@ import { UnauthorizedErrorResponseDto } from './dto/unauthorized-request-error.d
 import { UpdatedAdminDto } from './dto/updated-admin.dto';
 import { UpdatedContactsDto } from './dto/updated-contact.dto';
 import { SetAdminPasswordDto } from './dto/set-admin-password.dto';
-import { ConfirmUserCommand } from '../../common/commands/confirm-user.command';
-import { ActivateUserCommand } from '../../common/commands/activate-user.command';
-import { UpgradeUserCommand } from '../../common/commands/upgrade-user.command';
-import { GrantVolunteerKeysCommand } from '../../common/commands/grant-volunteer-keys.command';
-import { GrantAdminPrivilegesCommand } from '../../common/commands/grant-admin-privileges.command';
-import { RevokeAdminPrivilegesCommand } from '../../common/commands/revoke-admin-privileges.command';
-import { UpdateAdminPrivilegesCommand } from '../../common/commands/update-admin-privileges.command copy';
-import { DeactivateAdminCommand } from '../../common/commands/deactivate-admin.command';
-import { BlockUserCommand } from '../../common/commands/block-user.command';
+import { ConfirmUserCommand } from '../../common/commands-and-queries/confirm-user.command';
+import { ActivateUserCommand } from '../../common/commands-and-queries/activate-user.command';
+import { UpgradeUserCommand } from '../../common/commands-and-queries/upgrade-user.command';
+import { GrantVolunteerKeysCommand } from '../../common/commands-and-queries/grant-volunteer-keys.command';
+import { GrantAdminPrivilegesCommand } from '../../common/commands-and-queries/grant-admin-privileges.command';
+import { RevokeAdminPrivilegesCommand } from '../../common/commands-and-queries/revoke-admin-privileges.command';
+import { UpdateAdminPrivilegesCommand } from '../../common/commands-and-queries/update-admin-privileges.command copy';
+import { DeactivateAdminCommand } from '../../common/commands-and-queries/deactivate-admin.command';
+import { BlockUserCommand } from '../../common/commands-and-queries/block-user.command';
 
 @UseGuards(JwtAuthGuard)
 @UseGuards(AccessControlGuard)

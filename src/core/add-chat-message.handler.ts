@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { AddChatMessageCommand } from '../common/commands/add-chat-message.command';
+import { AddChatMessageCommand } from '../common/commands-and-queries/add-chat-message.command';
 import { WebsocketApiGateway } from '../api/websocket-api/websocket-api.gateway';
 import { ChatService } from './chat/chats.service';
 

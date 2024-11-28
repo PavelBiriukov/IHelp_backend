@@ -12,7 +12,9 @@ import { AnyUserInterface } from '../../common/types/user.types';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ContactsService } from '../../core/contacts/contacts.service';
 import { PolicyService } from '../../core/policy/policy.service';
-import { UpdateUserProfileCommand } from '../../common/commands/update-user-profile.command';
+import { UpdateUserProfileCommand } from '../../common/commands-and-queries/update-user-profile.command';
+import { GeoCoordinates } from '../../common/types/point-geojson.types';
+import { GetPublicTasksQuery } from '../../common/commands-and-queries/get-public-tasks.query';
 
 @Controller('system')
 export class SystemApiController {
@@ -54,11 +56,16 @@ export class SystemApiController {
   @Get('tasks/virgin')
   @Public()
   public async getVirginTasks(@Query() query: GetTasksQueryDto) {
-    const { latitude, longitude, ...data } = query;
-    return this.taskService.getAllVirginTasks({
-      ...data,
-      location: [longitude, latitude],
-    });
+    const { latitude, longitude, distance, categoryId, start, end } = query;
+    const location: GeoCoordinates = [longitude, latitude];
+    const dto = {
+      location,
+      distance,
+      categoryId,
+      start,
+      end,
+    };
+    return this.queryBus.execute<GetPublicTasksQuery>(new GetPublicTasksQuery(dto));
   }
 
   @Get('profile')

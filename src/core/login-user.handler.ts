@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { LoginUserCommand } from '../common/commands/login-user.command';
+import { LoginUserCommand } from '../common/commands-and-queries/login-user.command';
 import { AuthService } from './auth/auth.service';
 
 @CommandHandler(LoginUserCommand)
