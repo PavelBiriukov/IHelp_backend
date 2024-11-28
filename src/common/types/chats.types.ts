@@ -13,7 +13,7 @@ export interface MessageInterface {
   attaches: string[];
   createdAt: Date | string;
   author: AnyUserInterface;
-  chatId: ObjectId | string;
+  chatId: ObjectId | string | null;
 }
 
 export const ChatTypes = {
