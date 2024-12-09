@@ -1,99 +1,79 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import mongoose from 'mongoose';
-import { NotFoundException } from '@nestjs/common';
+import { TasksRepository } from '../datalake/task/task.repository';
+import { TaskInterface, TaskStatus } from '../common/types/task.types';
+import { WebsocketApiGateway } from '../api/websocket-api/websocket-api.gateway';
 import { CreateConflictChatsCommand } from '../common/commands/create-conflict-chats.command';
-import { ChatService } from './chat/chats.service';
+import { ChatService, mockTaskChatMeta } from './chat/chats.service';
 import { ChatsRepository } from '../datalake/chats/chats.repository';
 import {
-  ConflictChatsTupleMetaInterface,
-  RecipientConflictChatMetaInterface,
-  TaskChatModelInterface,
-  VolunteerConflictChatMetaInterface,
+  ConflictChatContentTuple,
+  ConflictChatInfo,
+  TaskChatInfo,
 } from '../common/types/chats.types';
-import { UserRole, UserStatus } from '../common/types/user.types';
-
-const mockVolunteer = {
-  _id: 'volunteerId',
-  role: UserRole.VOLUNTEER,
-  name: 'Volunteer',
-  phone: 'phone',
-  avatar: 'avatar',
-  address: 'address',
-  vkId: 'vkId',
-  score: 0,
-  status: UserStatus.CONFIRMED,
-  location: undefined,
-  keys: false,
-  tasksCompleted: 0,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  permissions: [],
-  login: 'login',
-  password: 'password',
-  isRoot: false,
-  isActive: false,
-};
-
-const mockRecipient = {
-  _id: 'recepientId',
-  role: UserRole.RECIPIENT,
-  name: 'Recepient',
-  phone: 'phone',
-  avatar: 'avatar',
-  address: 'address',
-  vkId: 'vkId',
-  score: 0,
-  status: UserStatus.CONFIRMED,
-  location: undefined,
-  keys: false,
-  tasksCompleted: 0,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  permissions: [],
-  login: 'login',
-  password: 'password',
-  isRoot: false,
-  isActive: false,
-};
-const mockchatTask = {
-  taskId: new mongoose.Types.ObjectId().toHexString(),
-  volunteer: mockVolunteer,
-  recipient: mockRecipient,
-  volunteerLastReadAt: null,
-  recipientLastReadAt: null,
-};
+import { UserRole } from '../common/types/user.types';
 
 @CommandHandler(CreateConflictChatsCommand)
 export class CreateConflictChatsHandler implements ICommandHandler<CreateConflictChatsCommand> {
   constructor(
     private readonly chatService: ChatService,
-    private readonly chatsRepo: ChatsRepository
-  ) {}
+    private readonly chatsRepo: ChatsRepository,
+    private readonly gateWay: WebsocketApiGateway,
+    private readonly taskRepo: TasksRepository
+  ) { }
 
   async execute({ taskId, moderator }: CreateConflictChatsCommand) {
-    let chatTask: TaskChatModelInterface = await this.chatsRepo.findOne({ taskId });
-    chatTask = mockchatTask; // удалить после реализации ChatService
-    if (!chatTask) {
-      throw new NotFoundException(`Чата по задаче с id:${taskId} не существует`);
-    }
-    const volunteerChatsMeta = await this.chatService.getUserChatsMeta(chatTask.volunteer._id);
-    const volunteerChat = volunteerChatsMeta.find(
-      (chat) => (chat as VolunteerConflictChatMetaInterface).type === 'CONFLICT_CHAT_WITH_VOLUNTEER'
-    ) as VolunteerConflictChatMetaInterface;
+    let chatTask: TaskChatInfo = await this.chatsRepo.findOne({ taskId });
+    chatTask = mockTaskChatMeta;
+    const task: TaskInterface = await this.taskRepo.findById(taskId);
 
-    const recipientChatsMeta = await this.chatService.getUserChatsMeta(chatTask.recipient._id);
-    const recipientChat = recipientChatsMeta.find(
-      (chat) => (chat as RecipientConflictChatMetaInterface).type === 'CONFLICT_CHAT_WITH_RECIPIENT'
-    ) as RecipientConflictChatMetaInterface;
-    const conflictChatMetadate: ConflictChatsTupleMetaInterface = {
-      taskId,
-      moderator,
-      adminVolunteerWatermark: '',
-      adminVolunteerUnreads: 0,
-      adminRecipientWatermark: '',
-      adminRecipientUnreads: 0,
-      meta: [volunteerChat, recipientChat],
+    const adminMessage = await this.chatService.addMessage({
+      body: `Администратор ${moderator.name} подключился к чату`,
+      attaches: [],
+      author: moderator,
+      chatId: null,
+    });
+    const createMessageAdmin = await this.chatService.addMessage(adminMessage);
+    const systemChat = await this.chatService.createSystemChat(createMessageAdmin);
+    const sysChat = {
+      meta: systemChat,
+      chats: null,
     };
-    return this.chatService.createConflictChat(conflictChatMetadate);
+    const confilctMeta = {
+      recipient: task.recipient,
+      volunteer: task.volunteer,
+      status: TaskStatus.CONFLICTED,
+      description: null,
+      date: new Date(),
+      address: task.address,
+      location: task.location,
+      category: task.category,
+      volunteerReport: null,
+      recipientReport: null,
+      adminResolve: null,
+      moderator,
+      isPendingChanges: task.isPendingChanges,
+    };
+    const conflictChat = await this.chatService.createConflictChat(confilctMeta);
+    const relatedChat = chatTask.chats.find((message) => message.chatId);
+    const messages = await this.chatService.getMessages(relatedChat.chatId, 5);
+    const messagesRecipient = messages.filter(
+      // eslint-disable-next-line no-return-assign, no-param-reassign
+      (message) => (message.author.role = UserRole.RECIPIENT)
+    );
+    const messagesVolunteer = messages.filter(
+      // eslint-disable-next-line no-return-assign, no-param-reassign
+      (message) => (message.author.role = UserRole.VOLUNTEER)
+    );
+    const chatContent: ConflictChatContentTuple = [messagesVolunteer, messagesRecipient];
+    const conflict: ConflictChatInfo = {
+      meta: conflictChat,
+      chats: chatContent,
+    };
+
+    await this.gateWay.sendChatMeta([chatTask.meta.volunteer._id, chatTask.meta.recipient._id], {
+      task: [chatTask],
+      system: [sysChat],
+      conflict: [conflict],
+    });
   }
 }
