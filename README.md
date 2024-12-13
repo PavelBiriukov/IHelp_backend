@@ -39,11 +39,11 @@ Swagger: [http://yapomogayu.workshop-projects.ru/api/docs/api/actual](http://yap
    ```env
    SERVER_PORT=3001 # На своё усмотрение
    CONTAINER_PORT=3001 # На своё усмотрение, на этом порту будет слушать сервер
-   DATABASE_HOST=mongodb # Название сервиса из docker-compose.dev.yml
-   DATABASE_PORT=27017 # На своё усмотрение
+   DATABASE_HOST=i-help-db-dev # Название сервиса из docker-compose.dev.yml
+   DATABASE_PORT=27017
    DATABASE_USERNAME= # Оставить пустым
    DATABASE_PASSWORD= # Оставить пустым
-   DATABASE_NAME="ya-pomogau-db" # На своё усмотрение
+   DATABASE_NAME=ya-pomogau-db
    SALT=10
    JWT_KEY=e776c17dcf7b8de11a1647faa49b89c2 # Обязательно поменять!!!
    JWT_TTL=7d
@@ -87,6 +87,9 @@ Swagger: [http://yapomogayu.workshop-projects.ru/api/docs/api/actual](http://yap
 
    # Или с помощью Makefile
    make run-dev
+
+   # Или с помощью Npm
+   npm run start:docker
    ```
 
    Cервер будет доступен на `SERVER_PORT` из `.env.dev`, по дефолту `3001` порт

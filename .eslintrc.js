@@ -17,7 +17,7 @@ module.exports = {
     // prettier must be the last in extends
     'prettier',
   ],
-  ignorePatterns: ['.eslintrc.js'],
+  ignorePatterns: ['.eslintrc.js', 'seed/mongo-init.js'],
   env: {
     node: true,
     jest: true,
