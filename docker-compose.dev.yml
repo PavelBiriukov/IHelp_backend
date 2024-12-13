@@ -17,18 +17,25 @@ services:
     depends_on:
       - mongodb
     environment:
-      # wait for mongodb service ready
-      # https://github.com/ufoscout/docker-compose-wait
       WAIT_HOSTS: mongodb:${DATABASE_PORT}
       WAIT_LOGGER_LEVEL: info
 
   mongodb:
     container_name: i-help-db-dev
-    hostname: mongodb
     image: mongo:7.0.5
     restart: on-failure
+    ports:
+      - "27017:27017"
     volumes:
       - ihelp:/data/db
+      - ./seed/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./seed/ya-pomogau-db.users.json:/docker-entrypoint-initdb.d/ya-pomogau-db.users.json:ro
+      - ./seed/ya-pomogau-db.contacts.json:/docker-entrypoint-initdb.d/ya-pomogau-db.contacts.json:ro
+      - ./seed/ya-pomogau-db.categories.json:/docker-entrypoint-initdb.d/ya-pomogau-db.categories.json:ro
+
+networks:
+  default:
+    driver: bridge
 
 volumes:
   ihelp:
