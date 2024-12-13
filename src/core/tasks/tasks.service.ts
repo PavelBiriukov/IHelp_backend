@@ -28,6 +28,7 @@ import { AnyUserInterface, UserRole } from '../../common/types/user.types';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { User } from '../../datalake/users/schemas/user.schema';
 import { CreateTaskChatCommand } from '../../common/commands/create-chat.command';
+import { CreateConflictChatsCommand } from '../../common/commands/create-conflict-chats.command';
 
 @Injectable()
 export class TasksService {
@@ -108,6 +109,7 @@ export class TasksService {
         } равен null.`,
       });
     }
+    await this.commandBus.execute(new CreateConflictChatsCommand(taskId, moderator));
     return this.tasksRepo.findOneAndUpdate(
       { _id: taskId, status: TaskStatus.CONFLICTED, adminResolve: ResolveStatus.VIRGIN },
       {

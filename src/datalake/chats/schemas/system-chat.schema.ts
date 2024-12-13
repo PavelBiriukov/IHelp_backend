@@ -1,4 +1,4 @@
-import { SchemaTypes } from 'mongoose';
+import { SchemaTypes, Document } from 'mongoose';
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { SystemChatModelInterface } from '../../../common/types/chats.types';
 import {

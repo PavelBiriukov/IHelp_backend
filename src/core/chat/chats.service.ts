@@ -16,6 +16,7 @@ import {
 } from '../../common/types/chats.types';
 import { AdminInterface, UserRole, UserStatus } from '../../common/types/user.types';
 import { wsChatPageQueryPayload, WsNewMessage } from '../../common/types/websockets.types';
+import { TaskInterface } from 'src/common/types/task.types';
 
 // #region Mock data
 
@@ -112,7 +113,7 @@ const mockResponseMessage = {
   },
 };
 
-const mockTaskChatMeta: TaskChatInfo = {
+export const mockTaskChatMeta: TaskChatInfo = {
   meta: {
     // _id: new mongoose.Types.ObjectId().toHexString(),
     _id: '671a520555bb110c3ad708d7',
@@ -216,7 +217,7 @@ export class ChatService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async createSystemChat(metadata: SystemChatMetaInterface): Promise<SystemChatMetaInterface> {
+  async createSystemChat(metadata: MessageInterface): Promise<SystemChatMetaInterface> {
     // eslint-disable-next-line no-console
     console.log('Creating system chat');
     return mockSystemChatMeta.meta;
@@ -224,7 +225,7 @@ export class ChatService {
 
   async createConflictChat(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    metadata: ConflictChatsTupleMetaInterface
+    task: TaskInterface
   ): Promise<ConflictChatsTupleMetaInterface> {
     // eslint-disable-next-line no-console
     console.log('Creating conflict chat');
