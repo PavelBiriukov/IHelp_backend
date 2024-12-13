@@ -1,0 +1,425 @@
+[{
+  "_id": {
+    "$oid": "65cf693911df8a4f5ca7f868"
+  },
+  "permissions": [
+    "CONFIRM_USER"
+  ],
+  "login": "admin4",
+  "password": "$2b$10$IrIjjlvjQLd6fIP4CYs.ge3GuAtgK1lw1Ly0IhodviI2yNkg9uVA6",
+  "vkID": null,
+  "isRoot": true,
+  "isActive": true,
+  "address": "Москва, Ленинградский проспект, 80к17",
+  "avatar": "https://kspshnik.com/pub/img/brienzersee_pre.jpg",
+  "name": "name4",
+  "phone": "+79203332233",
+  "vkId": "8741385541016382000",
+  "role": "Admin",
+  "createdAt": {
+    "$date": "2024-02-16T13:55:05.414Z"
+  },
+  "updatedAt": {
+    "$date": "2024-10-13T09:58:39.965Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a666a5061893a02955dad5"
+  },
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.716296,
+      37.76946
+    ],
+    "_id": {
+      "$oid": "66a22a0f702fe6113ae6b93a"
+    },
+    "createdAt": {
+      "$date": "2024-07-25T10:33:51.664Z"
+    },
+    "updatedAt": {
+      "$date": "2024-07-25T10:33:51.664Z"
+    }
+  },
+  "address": "Москва, Окская улица, 7А",
+  "avatar": "https://i.pravatar.cc/100",
+  "name": "Test Recipient",
+  "phone": "+79360199387",
+  "vkId": "333",
+  "role": "Recipient",
+  "createdAt": {
+    "$date": "2024-07-25T10:33:51.664Z"
+  },
+  "updatedAt": {
+    "$date": "2024-11-21T16:55:35.586Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a667f1061893a02955dae5"
+  },
+  "status": -1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.717295,
+      37.595097
+    ],
+    "_id": {
+      "$oid": "667becd00b1c6c36e084239b"
+    },
+    "createdAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    }
+  },
+  "address": "Москва, Ленинский проспект, 25",
+  "avatar": "https://images.unsplash.com/photo-1722111627062-57cd2cda63df?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "name": "Blocked Recipient",
+  "phone": "+7 (785) 222-12-21",
+  "vkId": "777",
+  "role": "Recipient",
+  "createdAt": {
+    "$date": "2024-06-26T10:26:24.255Z"
+  },
+  "updatedAt": {
+    "$date": "2024-09-07T15:43:49.357Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a6681b061893a02955dae7"
+  },
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.717295,
+      37.595097
+    ],
+    "_id": {
+      "$oid": "667becd00b1c6c36e084239b"
+    },
+    "createdAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    }
+  },
+  "address": "Москва, Ленинский проспект, 25",
+  "avatar": "https://images.unsplash.com/photo-1722111627062-57cd2cda63df?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "name": "Test Recipient 4",
+  "phone": "+7 (785) 222-12-21",
+  "vkId": "5394564568",
+  "role": "Recipient",
+  "createdAt": {
+    "$date": "2024-06-26T10:26:24.255Z"
+  },
+  "updatedAt": {
+    "$date": "2024-06-26T10:31:21.097Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a6683e061893a02955dae8"
+  },
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.717295,
+      37.595097
+    ],
+    "_id": {
+      "$oid": "667becd00b1c6c36e084239b"
+    },
+    "createdAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    }
+  },
+  "address": "Москва, Ленинский проспект, 25",
+  "avatar": "https://images.unsplash.com/photo-1722111627062-57cd2cda63df?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "name": "Test Recipient 5",
+  "phone": "+7 (785) 222-12-21",
+  "vkId": "53948",
+  "role": "Recipient",
+  "createdAt": {
+    "$date": "2024-06-26T10:26:24.255Z"
+  },
+  "updatedAt": {
+    "$date": "2024-06-26T10:31:21.097Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a66852061893a02955dae9"
+  },
+  "status": 0,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.717295,
+      37.595097
+    ],
+    "_id": {
+      "$oid": "667becd00b1c6c36e084239b"
+    },
+    "createdAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    },
+    "updatedAt": {
+      "$date": "2024-06-26T10:26:24.254Z"
+    }
+  },
+  "address": "Москва, Ленинский проспект, 25",
+  "avatar": "https://i.pravatar.cc/100",
+  "name": "Unconfirmed Recipient",
+  "phone": "+7 (785) 222-12-21",
+  "vkId": "555",
+  "role": "Recipient",
+  "createdAt": {
+    "$date": "2024-06-26T10:26:24.255Z"
+  },
+  "updatedAt": {
+    "$date": "2024-09-02T16:03:28.826Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a6693c061893a02955daea"
+  },
+  "score": 0,
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.890017,
+      37.621157
+    ],
+    "_id": {
+      "$oid": "65d0c96bb4f344e1a0072b67"
+    },
+    "createdAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    }
+  },
+  "keys": false,
+  "address": "Москва, улица Плещеева, 30",
+  "avatar": "https://i.pravatar.cc/100",
+  "name": "Test Volunteer",
+  "phone": "+79999999999",
+  "vkId": "222",
+  "role": "Volunteer",
+  "createdAt": {
+    "$date": "2024-02-17T14:57:47.128Z"
+  },
+  "updatedAt": {
+    "$date": "2024-11-17T19:12:11.842Z"
+  },
+  "__v": 0,
+  "tasksCompleted": 17
+},
+{
+  "_id": {
+    "$oid": "66a66957061893a02955daeb"
+  },
+  "score": 0,
+  "status": 0,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.890017,
+      37.621157
+    ],
+    "_id": {
+      "$oid": "65d0c96bb4f344e1a0072b67"
+    },
+    "createdAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    }
+  },
+  "keys": false,
+  "address": "Москва, улица Плещеева, 30",
+  "avatar": "https://i.pravatar.cc/100",
+  "name": "Unconfirmed Volunteer",
+  "phone": "89999999999",
+  "vkId": "111",
+  "role": "Volunteer",
+  "createdAt": {
+    "$date": "2024-02-17T14:57:47.128Z"
+  },
+  "updatedAt": {
+    "$date": "2024-09-16T14:31:12.502Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a66967061893a02955daec"
+  },
+  "score": 30,
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.890017,
+      37.621157
+    ],
+    "_id": {
+      "$oid": "65d0c96bb4f344e1a0072b67"
+    },
+    "createdAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    }
+  },
+  "keys": false,
+  "address": "Москва, улица Плещеева, 30",
+  "avatar": "",
+  "name": "Test Volunteer 3",
+  "phone": "+79008008080",
+  "vkId": "999",
+  "role": "Volunteer",
+  "createdAt": {
+    "$date": "2024-02-17T14:57:47.128Z"
+  },
+  "updatedAt": {
+    "$date": "2024-09-16T14:32:49.798Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66a66974061893a02955daed"
+  },
+  "score": 61,
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.890017,
+      37.621157
+    ],
+    "_id": {
+      "$oid": "65d0c96bb4f344e1a0072b67"
+    },
+    "createdAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    }
+  },
+  "keys": false,
+  "address": "Москва, улица Плещеева, 30",
+  "avatar": "",
+  "name": "Test Volunteer 4",
+  "phone": "+7 (900) 800 80 80",
+  "vkId": "1111",
+  "role": "Volunteer",
+  "createdAt": {
+    "$date": "2024-02-17T14:57:47.128Z"
+  },
+  "updatedAt": {
+    "$date": "2024-09-16T15:10:34.272Z"
+  },
+  "__v": 0,
+  "tasksCompleted": 1
+},
+{
+  "_id": {
+    "$oid": "66a6697d061893a02955daee"
+  },
+  "score": 0,
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.890017,
+      37.621157
+    ],
+    "_id": {
+      "$oid": "65d0c96bb4f344e1a0072b67"
+    },
+    "createdAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    }
+  },
+  "keys": false,
+  "address": "Москва, улица Плещеева, 30",
+  "avatar": "https://i.pravatar.cc/100",
+  "name": "Blocked Volunteer",
+  "phone": "+7 (900) 800 80 80",
+  "vkId": "888",
+  "role": "Volunteer",
+  "createdAt": {
+    "$date": "2024-02-17T14:57:47.128Z"
+  },
+  "updatedAt": {
+    "$date": "2024-09-21T21:07:50.417Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66c9dd5ba4ea35613427d20e"
+  },
+  "score": 60,
+  "status": 1,
+  "location": {
+    "type": "Point",
+    "coordinates": [
+      55.890017,
+      37.621157
+    ],
+    "_id": {
+      "$oid": "65d0c96bb4f344e1a0072b67"
+    },
+    "createdAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-17T14:57:47.128Z"
+    }
+  },
+  "keys": true,
+  "address": "Москва, улица Плещеева, 30",
+  "avatar": "",
+  "name": "Test Volunteer 4",
+  "phone": "+79999999999",
+  "vkId": "2222",
+  "role": "Volunteer",
+  "createdAt": {
+    "$date": "2024-02-17T14:57:47.128Z"
+  },
+  "updatedAt": {
+    "$date": "2024-09-16T14:33:19.298Z"
+  },
+  "__v": 0
+}]
