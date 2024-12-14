@@ -105,3 +105,9 @@ export interface UserModelVirtuals {
   fullName: string;
   profile: UserProfile;
 }
+
+export interface AuthorProfile {
+  name: string;
+  avatar: string;
+  userId: string;
+}

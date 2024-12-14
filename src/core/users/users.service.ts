@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InternalServerErrorException, NotFoundException } from '@nestjs/common/exceptions';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateAdminDto, CreateUserDto } from '../../common/dto/users.dto';
 import {
   AdminInterface,
@@ -22,14 +23,15 @@ import { PointGeoJSONInterface } from '../../common/types/point-geojson.types';
 import { checkIsEnoughRights } from '../../common/helpers/checkIsEnoughRights';
 import exceptions from '../../common/constants/exceptions';
 import { UsersRepository } from '../../datalake/users/users.repository';
-import { Admin } from '../../datalake/users/schemas/admin.schema';
 import { User } from '../../datalake/users/schemas/user.schema';
-import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
-import { Recipient } from '../../datalake/users/schemas/recipient.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepo: UsersRepository) {}
+  constructor(
+    private readonly usersRepo: UsersRepository,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus
+  ) {}
 
   private static loginRequired: Array<string> = [];
 
@@ -146,20 +148,41 @@ export class UsersService {
     } */
     return this.create({
       ...dto,
-      password: await HashService.generateHash(dto.password),
+      password: await this.hashPassword(dto.password),
       isRoot: false,
       isActive: true,
       role: UserRole.ADMIN,
     });
   }
 
-  async confirm(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+  private async hashPassword(password: string): Promise<string> {
+    const newPassword = await HashService.generateHash(password);
+    return newPassword;
+  }
+
+  async setAdminPassword(userId: string, password: string): Promise<AnyUserInterface> {
+    const hash = await this.hashPassword(password);
+    const admin = (await this.usersRepo.findOneAndUpdate(
+      { _id: userId, role: UserRole.ADMIN },
+      { password: hash },
+      { new: true }
+    )) as User & AnyUserInterface;
+    if (!admin) {
+      throw new NotFoundException(`Пользователь с _id '${userId}' не найден<`);
+    }
+    if (admin.isRoot && admin.role === UserRole.ADMIN) {
+      throw new ForbiddenException(`Изменение пароля Главного администратора недоступно`);
+    }
+    return admin;
+  }
+
+  async confirm(_id: string): Promise<User & AnyUserInterface> {
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден<`);
     }
     if (user.role === UserRole.VOLUNTEER || user.role === UserRole.RECIPIENT) {
-      const { status } = user as Volunteer | Recipient;
+      const { status } = user;
       switch (status) {
         case UserStatus.BLOCKED: {
           throw new ForbiddenException(
@@ -168,9 +191,14 @@ export class UsersService {
         }
         case UserStatus.UNCONFIRMED: {
           const { role } = user;
-          UsersService.requireLogin(_id);
-          return this.usersRepo.findOneAndUpdate({ _id, role }, { status: UserStatus.CONFIRMED });
+          const updatedUser = (await this.usersRepo.findOneAndUpdate(
+            { _id, role },
+            { status: UserStatus.CONFIRMED }
+          )) as User & AnyUserInterface;
+
+          return Promise.resolve(updatedUser);
         }
+
         case UserStatus.CONFIRMED: {
           return user;
         }
@@ -190,89 +218,114 @@ export class UsersService {
     throw new BadRequestException('Повысить можно только волонтёра или реципиента');
   }
 
-  async upgrade(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+  async upgrade(_id: string): Promise<User & AnyUserInterface> {
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден<`);
     }
     if (user.role === UserRole.VOLUNTEER || user.role === UserRole.RECIPIENT) {
-      const { status } = user as Volunteer | Recipient;
+      const { status } = user;
       if (status < UserStatus.ACTIVATED) {
         const { role } = user;
-        UsersService.requireLogin(_id);
-        return this.usersRepo.findOneAndUpdate({ _id, role }, { status: status + 1 });
+        const updatedUser = (await this.usersRepo.findOneAndUpdate(
+          { _id, role },
+          { status: status + 1 }
+        )) as User & AnyUserInterface;
+
+        return Promise.resolve(updatedUser);
       }
       return user;
     }
     throw new BadRequestException('Повысить можно только волонтёра или реципиента');
   }
 
-  async downgrade(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+  async downgrade(_id: string): Promise<User & AnyUserInterface> {
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден<`);
     }
     if (user.role === UserRole.VOLUNTEER || user.role === UserRole.RECIPIENT) {
-      const { status } = user as Volunteer | Recipient;
+      const { status } = user;
       if (status > UserStatus.UNCONFIRMED && status <= UserStatus.ACTIVATED) {
         const { role } = user;
-        UsersService.requireLogin(_id);
-        return this.usersRepo.findOneAndUpdate({ _id, role }, { status: status - 1 });
+        const updatedUser = (await this.usersRepo.findOneAndUpdate(
+          { _id, role },
+          { status: status - 1 }
+        )) as User & AnyUserInterface;
+
+        return Promise.resolve(updatedUser);
       }
       return user;
     }
     throw new BadRequestException('Понизить статус можно только волонтёру или реципиенту');
   }
 
-  async grantKeys(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+  async grantKeys(_id: string): Promise<User & AnyUserInterface> {
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден<`);
     }
     if (user.role === UserRole.VOLUNTEER) {
       const { role } = user;
-      UsersService.requireLogin(_id);
-      return this.usersRepo.findOneAndUpdate({ _id, role }, { keys: true });
+      const updatedUser = (await this.usersRepo.findOneAndUpdate(
+        { _id, role },
+        { keys: true }
+      )) as User & AnyUserInterface;
+
+      return Promise.resolve(updatedUser);
     }
 
     throw new BadRequestException('Выдать ключи можно только волонтёру!');
   }
 
-  async revokeKeys(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+  async revokeKeys(_id: string): Promise<User & AnyUserInterface> {
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден<`);
     }
     if (user.role === UserRole.VOLUNTEER) {
       const { role } = user;
-      UsersService.requireLogin(_id);
-      return this.usersRepo.findOneAndUpdate({ _id, role }, { keys: false });
+      const updatedUser = (await this.usersRepo.findOneAndUpdate(
+        { _id, role },
+        { keys: false }
+      )) as User & AnyUserInterface;
+
+      return Promise.resolve(updatedUser);
     }
 
     throw new BadRequestException('Отобрать ключи можно только у волонтёра!');
   }
 
-  async activate(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+  async activate(_id: string): Promise<User & AnyUserInterface> {
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден!`);
     }
     if (user.role === UserRole.ADMIN) {
-      UsersService.requireLogin(_id);
-      return this.usersRepo.findOneAndUpdate({ _id, role: UserRole.ADMIN }, { isActive: true });
+      const updatedUser = (await this.usersRepo.findOneAndUpdate(
+        { _id, role: UserRole.ADMIN },
+        { isActive: true }
+      )) as User & AnyUserInterface;
+
+      return Promise.resolve(updatedUser);
     }
     throw new BadRequestException('Можно активировать только администратора');
   }
 
   async block(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден!`);
     }
     if (user.role === UserRole.VOLUNTEER || user.role === UserRole.RECIPIENT) {
       const { role } = user;
       UsersService.requireLogin(_id);
-      return this.usersRepo.findOneAndUpdate({ _id, role }, { status: UserStatus.BLOCKED });
+
+      const updatedUser = (await this.usersRepo.findOneAndUpdate(
+        { _id, role },
+        { status: UserStatus.BLOCKED }
+      )) as User & AnyUserInterface;
+      return updatedUser;
     }
     if (user.role === UserRole.ADMIN) {
       throw new BadRequestException('Нужен _id волонтёра или реципиента!');
@@ -284,13 +337,17 @@ export class UsersService {
   }
 
   async deactivate(_id: string) {
-    const user = (await this.usersRepo.findById(_id)) as User & (Recipient | Admin | Volunteer);
+    const user = (await this.usersRepo.findById(_id)) as User & AnyUserInterface;
     if (!user) {
       throw new NotFoundException(`Пользователь с _id '${_id}' не найден!`);
     }
     if (user.role === UserRole.ADMIN) {
       UsersService.requireLogin(_id);
-      return this.usersRepo.findOneAndUpdate({ _id, role: UserRole.ADMIN }, { isActive: false });
+      const updatedUser = (await this.usersRepo.findOneAndUpdate(
+        { _id, role: UserRole.ADMIN },
+        { isActive: false }
+      )) as User & AnyUserInterface;
+      return updatedUser;
     }
     if (user.role === UserRole.VOLUNTEER || user.role === UserRole.RECIPIENT) {
       throw new BadRequestException('Нужен _id администратора!');
@@ -306,7 +363,7 @@ export class UsersService {
     admin: AnyUserInterface,
     userId: string,
     privileges: Array<AdminPermission>
-  ) {
+  ): Promise<User & AnyUserInterface> {
     if (!checkIsEnoughRights(admin, [], true)) {
       throw new ForbiddenException(exceptions.users.onlyForAdmins);
     }
@@ -323,12 +380,12 @@ export class UsersService {
       });
     }
 
-    UsersService.requireLogin(userId);
-
-    return this.usersRepo.findOneAndUpdate(
+    const updatedUser = (await this.usersRepo.findOneAndUpdate(
       { _id: userId, role: UserRole.ADMIN },
       { $addToSet: { permissions: { $each: privileges } } }
-    );
+    )) as User & AnyUserInterface;
+
+    return Promise.resolve(updatedUser);
   }
 
   // Удаление привилегий администратора. Только root
@@ -336,7 +393,7 @@ export class UsersService {
     admin: AnyUserInterface,
     userId: string,
     privileges: Array<AdminPermission>
-  ) {
+  ): Promise<User & AnyUserInterface> {
     if (!checkIsEnoughRights(admin, [], true)) {
       throw new ForbiddenException(exceptions.users.onlyForAdmins);
     }
@@ -353,12 +410,12 @@ export class UsersService {
       });
     }
 
-    UsersService.requireLogin(userId);
-
-    return this.usersRepo.findOneAndUpdate(
-      { userId, role: UserRole.ADMIN },
+    const updatedUser = (await this.usersRepo.findOneAndUpdate(
+      { _id: userId, role: UserRole.ADMIN },
       { $pull: { permissions: { $in: privileges } } }
-    );
+    )) as User & AnyUserInterface;
+
+    return Promise.resolve(updatedUser);
   }
 
   // Обновление привилегий администратора. Только root
@@ -366,7 +423,7 @@ export class UsersService {
     admin: AnyUserInterface,
     userId: string,
     privileges: Array<AdminPermission>
-  ) {
+  ): Promise<User & AnyUserInterface> {
     if (!checkIsEnoughRights(admin, [], true)) {
       throw new ForbiddenException(exceptions.users.onlyForAdmins);
     }
@@ -383,12 +440,12 @@ export class UsersService {
       });
     }
 
-    UsersService.requireLogin(userId);
-
-    return this.usersRepo.findOneAndUpdate(
+    const updatedUser = (await this.usersRepo.findOneAndUpdate(
       { _id: userId, role: UserRole.ADMIN },
       { $set: { permissions: privileges } }
-    );
+    )) as User & AnyUserInterface;
+
+    return Promise.resolve(updatedUser);
   }
 
   public async getUsersByRole(role: UserRole) {
@@ -404,15 +461,32 @@ export class UsersService {
     });
   }
 
-  public async getAdministrators() {
-    return this.usersRepo.find({ role: UserRole.ADMIN, isRoot: false, isActive: true });
+  public async getAdministrators(isActive = true) {
+    return this.usersRepo.find({ role: UserRole.ADMIN, isRoot: false, isActive });
   }
 
   public async getProfile(userId: string) {
-    return this.usersRepo.findById(userId);
+    try {
+      const user = await this.usersRepo.findOne({ _id: userId });
+
+      if (!user) {
+        throw new NotFoundException('Пользователь не найден!', {
+          cause: `Пользователь с _id '${userId}' не найден`,
+        });
+      }
+
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException('Ошибка при выполнении запроса!', {
+        cause: error.message,
+      });
+    }
   }
 
-  public async updateProfile(userId: string, dto: Partial<UserProfile>) {
+  public async updateProfile(
+    userId: string,
+    dto: Partial<UserProfile>
+  ): Promise<User & AnyUserInterface> {
     const user = await this.usersRepo.findById(userId);
     if (!user) {
       throw new NotFoundException('Пользователь не найден!', {
@@ -420,17 +494,24 @@ export class UsersService {
       });
     }
     const { role } = user;
-    return this.usersRepo.findOneAndUpdate({ _id: userId, role }, dto);
+    const updatedUser = (await this.usersRepo.findOneAndUpdate(
+      { _id: userId, role },
+      dto
+    )) as User & AnyUserInterface;
+
+    return Promise.resolve(updatedUser);
   }
 
   public async updateVolunteerProfile(
     userId: string,
     dto: Partial<VolunteerInterface>
-  ): Promise<User & Volunteer> {
-    return this.usersRepo.findOneAndUpdate(
+  ): Promise<User & AnyUserInterface> {
+    const updatedUser = (await this.usersRepo.findOneAndUpdate(
       { _id: userId, role: UserRole.VOLUNTEER },
       dto
-    ) as Promise<User & Volunteer>;
+    )) as User & AnyUserInterface;
+
+    return Promise.resolve(updatedUser);
   }
 
   private static requireLogin(userId: string) {

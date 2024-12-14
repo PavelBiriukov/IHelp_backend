@@ -3,12 +3,14 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import configuration from './config/configuration';
+import { MethodNotAllowedExceptionFilter } from './common/filters/methodNotAllowedFilter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true })
   );
+  app.useGlobalFilters(new MethodNotAllowedExceptionFilter());
   // app.enableCors({ origin: configuration().server.cors_origins.split(',') });
   app.enableCors({ origin: '*' });
 

@@ -7,6 +7,8 @@ import {
   UpdateQuery,
   type ObjectId,
   MongooseBulkWriteOptions,
+  PipelineStage,
+  AggregateOptions,
 } from 'mongoose';
 import { POJOType } from '../../common/types/pojo.type';
 
@@ -168,5 +170,9 @@ export abstract class BaseRepositoryService<T extends Document, M = {}, V = {}> 
 
   async deleteMany(entityFilterQuery: FilterQuery<T>): Promise<DeleteResult> {
     return this.entityModel.deleteMany(entityFilterQuery);
+  }
+
+  async aggregate(pipeline: PipelineStage[], options?: AggregateOptions): Promise<Array<T>> {
+    return this.entityModel.aggregate(pipeline, options);
   }
 }

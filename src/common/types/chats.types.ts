@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { type ObjectId } from 'mongoose';
 import {
   AdminInterface,
@@ -5,27 +6,39 @@ import {
   RecipientInterface,
   VolunteerInterface,
 } from './user.types';
-import { MongooseIdAndTimestampsInterface } from './system.types';
+import { ChatType, MongooseIdAndTimestampsInterface } from './system.types';
+// eslint-disable-next-line import/no-cycle
+import { Chat } from '../../datalake/chats/schemas/chat.schema';
+import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
+import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
+import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
+import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
 
 export interface MessageInterface {
-  _id: ObjectId;
-  title: string;
+  _id: ObjectId | string;
   body: string;
   attaches: string[];
-  createdAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   author: AnyUserInterface;
-  chatId: ObjectId;
+  chatId: ObjectId | string | null;
 }
 
-export const ChatTypes = {
-  TASK_CHAT: 'TaskChat',
-  SYSTEM_CHAT: 'SystemChat',
-  CONFLICT_CHAT_WITH_VOLUNTEER: 'ConflictChatWithVolunteer',
-  CONFLICT_CHAT_WITH_RECIPIENT: 'ConflictChatWithRecipient',
-  CONFLICT_CHAT: 'ConflictChat',
-} as const;
+export interface VirginMessageInterface
+  extends Pick<MessageInterface, 'body' | 'chatId' | 'author'> {
+  attaches?: string[];
+}
 
-export type ChatType = keyof typeof ChatTypes;
+export type TaskChatType = typeof ChatType.TASK_CHAT;
+export type SystemChatType = typeof ChatType.SYSTEM_CHAT;
+export type VolunteerConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_VOLUNTEER;
+export type RecipientConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_RECIPIENT;
+export type AnyConflictChatType = VolunteerConflictChatType | RecipientConflictChatType;
+
+export type TaskBearingChatType = TaskChatType | AnyConflictChatType;
+export type VolunteerBearingChatType = TaskChatType | VolunteerConflictChatType;
+export type RecipientBearingChatType = TaskChatType | RecipientConflictChatType;
+export type AdminBearingChatType = SystemChatType | AnyConflictChatType;
 
 export interface ChatModelInterface {
   type: ChatType;
@@ -33,7 +46,7 @@ export interface ChatModelInterface {
 }
 
 export interface TaskChatModelInterface {
-  taskId: ObjectId;
+  taskId: ObjectId | string;
   volunteer: VolunteerInterface;
   recipient: RecipientInterface;
   volunteerLastReadAt: Date | null;
@@ -83,6 +96,19 @@ export interface ConflictChatWithRecipientInterface
   extends ChatModelInterface,
     ConflictChatWithRecipientModelInterface,
     MongooseIdAndTimestampsInterface {}
+
+export type AnyChatInterface =
+  | TaskChatInterface
+  | SystemChatInterface
+  | ConflictChatWithVolunteerInterface
+  | ConflictChatWithRecipientInterface;
+
+export type AnyChat =
+  | Chat
+  | SystemChat
+  | TaskChat
+  | ConflictChatWithVolunteer
+  | ConflictChatWithRecipient;
 
 export interface WatermarkInterface {
   watermark: string;
@@ -156,3 +182,31 @@ export interface GetAdminChatsResponseDtoInterface {
   moderated: Array<ConflictChatInfo>;
   conflict: Array<ConflictChatInfo>;
 }
+
+export type AnyUserChatsResponseDtoInterface =
+  | GetUserChatsResponseDtoInterface
+  | GetAdminChatsResponseDtoInterface;
+
+export type CreateChatEntityDtoBaseType<T> = T extends TaskChatType
+  ? Pick<TaskChatInterface, 'taskId' | 'type' | 'volunteer' | 'recipient'>
+  : T extends SystemChatType
+  ? Pick<SystemChatInterface, 'type' | 'user'>
+  : T extends VolunteerConflictChatType
+  ? Pick<ConflictChatWithVolunteerInterface, 'type' | 'taskId' | 'admin' | 'volunteer'>
+  : T extends RecipientConflictChatType
+  ? Pick<ConflictChatWithRecipientInterface, 'type' | 'taskId' | 'admin' | 'recipient'>
+  : never;
+
+export type CreateTaskChatEntityDtoType = CreateChatEntityDtoBaseType<TaskChatType>;
+export type CreateSystemChatEntityDtoType = CreateChatEntityDtoBaseType<SystemChatType>;
+export type CreateConflictVolunteerChatEntityDtoType =
+  CreateChatEntityDtoBaseType<VolunteerConflictChatType>;
+export type CreateConflictRecipientChatEntityDtoType =
+  CreateChatEntityDtoBaseType<RecipientConflictChatType>;
+export type CreateChatEntityDtoTypes =
+  | CreateTaskChatEntityDtoType
+  | CreateSystemChatEntityDtoType
+  | CreateConflictVolunteerChatEntityDtoType
+  | CreateConflictRecipientChatEntityDtoType;
+
+export type CreateChatDtoType<T extends CreateChatEntityDtoTypes> = Omit<T, '_id' | 'type'>;

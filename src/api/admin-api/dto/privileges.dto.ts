@@ -3,7 +3,12 @@ import { IsArray, IsDefined, IsIn, IsNotEmpty, IsString } from 'class-validator'
 import { AdminPermission } from '../../../common/types/user.types';
 
 export class ApiPrivilegesDto {
-  @ApiProperty()
+  @ApiProperty({
+    enum: AdminPermission,
+    isArray: true,
+    description: 'Массив с перечислением привилегий администратора',
+    example: [AdminPermission.CONFLICTS, AdminPermission.CATEGORIES],
+  })
   @IsDefined()
   @IsNotEmpty()
   @IsArray()
@@ -19,5 +24,5 @@ export class ApiPrivilegesDto {
     ],
     { each: true }
   )
-  privileges: Array<AdminPermission>;
+  privileges: AdminPermission[];
 }

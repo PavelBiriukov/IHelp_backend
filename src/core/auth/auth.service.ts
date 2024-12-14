@@ -4,11 +4,10 @@ import { HttpService } from '@nestjs/axios';
 import { JwtService } from '@nestjs/jwt';
 import { AxiosError, AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../users/users.service';
+
+import { AnyUserInterface } from '../../common/types/user.types';
 import { VKLoginDtoInterface, VKResponseInterface } from '../../common/types/api.types';
-import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
-import { Recipient } from '../../datalake/users/schemas/recipient.schema';
-import { Admin } from '../../datalake/users/schemas/admin.schema';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -20,9 +19,7 @@ export class AuthService {
   ) {}
 
   // TODO: сократить payload, после создания метода логина админа сделать приватным
-  public async authenticate(
-    payload: Record<string, unknown> | Volunteer | Recipient | Admin
-  ): Promise<string> {
+  public async authenticate(payload: AnyUserInterface): Promise<string> {
     return this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('jwt.key'),
       expiresIn: this.configService.get<string>('jwt.ttl'),

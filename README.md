@@ -1,12 +1,12 @@
-Бриф [https://narrow-mountain-bc1.notion.site/3-13-1880e7396a9c4bbda3d1f33103fd01af](https://narrow-mountain-bc1.notion.site/3-13-1880e7396a9c4bbda3d1f33103fd01af)
+~~Бриф [https://narrow-mountain-bc1.notion.site/3-13-1880e7396a9c4bbda3d1f33103fd01af](https://narrow-mountain-bc1.notion.site/3-13-1880e7396a9c4bbda3d1f33103fd01af)~~
 
-Backend [https://api.kraev.nomoredomains.xyz](https://api.kraev.nomoredomains.xyz)
+Frontend [https://yapomogayu.workshop-projects.ru](https://yapomogayu.workshop-projects.ru)
 
-IP адрес [84.201.139.237](84.201.139.237)
+IP адрес: 51.250.110.188
 
-API [https://api.kraev.nomoredomains.xyz/api](https://api.kraev.nomoredomains.xyz/api)
+API [https://yapomogayu.workshop-projects.ru/api](https://yapomogayu.workshop-projects.ru/api)
 
-Коллекция postman - (https://www.postman.com/phizick/workspace/ihelp)
+Swagger: [http://yapomogayu.workshop-projects.ru/api/docs/api/actual](http://yapomogayu.workshop-projects.ru/api/docs/api/actual)
 
 **Коллекция postman для обновленного api в корне проекта: postman_collection.json**
 
@@ -35,15 +35,15 @@ API [https://api.kraev.nomoredomains.xyz/api](https://api.kraev.nomoredomains.xy
    ```shell
    git clone git@github.com:ya-pomogau/backend.git
    ```
-2. Скопировать `.env.example` в `.env.dev` и внести правки:
-   ```shell
+2. Скопировать `.env.example` в `.env.dev` и внести правки (**УДАЛЯТЬ** комментарии при копировании!):
+   ```env
    SERVER_PORT=3001 # На своё усмотрение
    CONTAINER_PORT=3001 # На своё усмотрение, на этом порту будет слушать сервер
-   DATABASE_HOST=mongodb # Название сервиса из docker-compose.dev.yml
-   DATABASE_PORT=27017 # На своё усмотрение
+   DATABASE_HOST=i-help-db-dev # Название сервиса из docker-compose.dev.yml
+   DATABASE_PORT=27017
    DATABASE_USERNAME= # Оставить пустым
    DATABASE_PASSWORD= # Оставить пустым
-   DATABASE_NAME="ya-pomogau-db" # На своё усмотрение
+   DATABASE_NAME=ya-pomogau-db
    SALT=10
    JWT_KEY=e776c17dcf7b8de11a1647faa49b89c2 # Обязательно поменять!!!
    JWT_TTL=7d
@@ -87,15 +87,19 @@ API [https://api.kraev.nomoredomains.xyz/api](https://api.kraev.nomoredomains.xy
 
    # Или с помощью Makefile
    make run-dev
+
+   # Или с помощью Npm
+   npm run start:docker
    ```
 
    Cервер будет доступен на `SERVER_PORT` из `.env.dev`, по дефолту `3001` порт
 
 ## Не реализована функциональность
 
-- [ ] учетные записи пользователей
+- [x] ~~учетные записи пользователей~~
 - [ ] чат
-- [ ] редактирования заявок
-- [ ] регистрации
-- [ ] общие страницы
-- [ ] страницы пользователей
+- [x] ~~редактирования заявок~~
+- [x] ~~регистрации~~
+- [x] ~~общие страницы~~
+- [x] ~~страницы пользователей~~
+- [ ] сохранение аватаров и файлов в чатах

@@ -1,0 +1,14 @@
+[{
+  "_id": {
+    "$oid": "666a86f8e277fca0eadcfa6a"
+  },
+  "email": "test@ya.ru",
+  "socialNetwork": "test@ya.ru",
+  "createdAt": {
+    "$date": "2024-06-13T05:43:20.930Z"
+  },
+  "updatedAt": {
+    "$date": "2024-06-13T05:43:20.930Z"
+  },
+  "__v": 0
+}]
