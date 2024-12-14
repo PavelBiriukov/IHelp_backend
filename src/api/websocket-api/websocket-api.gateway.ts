@@ -14,7 +14,7 @@ import { Server, Socket } from 'socket.io';
 import { IsArray, IsNotEmpty, IsObject, IsString } from 'class-validator';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
-import { AddChatMessageCommand } from '../../common/commands/add-chat-message.command';
+import { AddChatMessageCommand } from '../../common/commands-and-queries/add-chat-message.command';
 import configuration from '../../config/configuration';
 import { SocketValidationPipe } from '../../common/pipes/socket-validation.pipe';
 import { AnyUserInterface } from '../../common/types/user.types';

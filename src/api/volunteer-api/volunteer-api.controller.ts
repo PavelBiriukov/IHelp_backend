@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AccessControlGuard } from '../../common/guards/access-control.guard';
 import { UsersService } from '../../core/users/users.service';
@@ -9,6 +10,8 @@ import { User } from '../../datalake/users/schemas/user.schema';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { GetTasksSearchDto } from '../recipient-api/dto/get-tasks-query.dto';
 import { TaskReport, TaskStatus } from '../../common/types/task.types';
+import { GetVirginTasksQuery } from '../../common/commands-and-queries/get-virgin-tasks.query';
+import { GeoCoordinates } from '../../common/types/point-geojson.types';
 
 @UseGuards(JwtAuthGuard)
 @UseGuards(AccessControlGuard)
@@ -16,21 +19,24 @@ import { TaskReport, TaskStatus } from '../../common/types/task.types';
 export class VolunteerApiController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly tasksService: TasksService
+    private readonly tasksService: TasksService,
+    private readonly queryBus: QueryBus
   ) {}
 
   @AccessControlList({ role: UserRole.VOLUNTEER, level: UserStatus.UNCONFIRMED })
   @Get('tasks/virgin')
   public async getNewTasks(@Req() req: Express.Request, @Query() query: GetTasksSearchDto) {
-    const { latitude, longitude, distance, ...data } = query;
-    return this.tasksService.getTasksByStatus(
-      TaskStatus.CREATED,
-      {
-        ...data,
-        location: [longitude, latitude],
-        distance,
-      },
-      req.user as AnyUserInterface
+    const { latitude, longitude, distance, categoryId, start, end } = query;
+    const location: GeoCoordinates = [longitude, latitude];
+    const dto = {
+      location,
+      distance,
+      categoryId,
+      start,
+      end,
+    };
+    return this.queryBus.execute<GetVirginTasksQuery>(
+      new GetVirginTasksQuery(TaskStatus.CREATED, dto, req.user as AnyUserInterface)
     );
   }
 

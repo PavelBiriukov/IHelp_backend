@@ -11,6 +11,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
 import {
   ApiOperation,
   ApiBody,
@@ -36,13 +37,15 @@ import { TaskReport, TaskStatus } from '../../common/types/task.types';
 import { DeletedTaskDto } from './dto/deleted-task.dto';
 import { schema } from '../../common/utils/apiSchemaObj';
 import { ApiUpdateTaskDto } from './dto/update-task.dto';
+import { GetVirginTasksQuery } from '../../common/commands-and-queries/get-virgin-tasks.query';
+import { GeoCoordinates } from '../../common/types/point-geojson.types';
 
 @UseGuards(JwtAuthGuard)
 @UseGuards(AccessControlGuard)
 @ApiTags('Recipient API')
 @Controller('recipient')
 export class RecipientApiController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService, private readonly queryBus: QueryBus) {}
 
   @Post('/tasks')
   @AccessControlList({ role: UserRole.RECIPIENT, level: UserStatus.CONFIRMED })
@@ -94,8 +97,18 @@ export class RecipientApiController {
   })
   @AccessControlList({ role: UserRole.RECIPIENT, level: UserStatus.CONFIRMED })
   public async getVirginTasks(@Query() query: GetTasksSearchDto, @Req() req: Express.Request) {
-    const { user } = req;
-    return this.tasksService.getTasksByStatus(TaskStatus.CREATED, query, user as AnyUserInterface);
+    const { latitude, longitude, distance, categoryId, start, end } = query;
+    const location: GeoCoordinates = [longitude, latitude];
+    const dto = {
+      location,
+      distance,
+      categoryId,
+      start,
+      end,
+    };
+    return this.queryBus.execute<GetVirginTasksQuery>(
+      new GetVirginTasksQuery(TaskStatus.CREATED, dto, req.user as AnyUserInterface)
+    );
   }
 
   @Put('/tasks/:id/fulfill')

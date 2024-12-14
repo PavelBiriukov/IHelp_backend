@@ -8,6 +8,7 @@ import { UsersRepositoryModule } from '../../datalake/users/users-repository.mod
 import { CategoryRepositoryModule } from '../../datalake/category/category-repository.module';
 import { UsersModule } from '../../core/users/users.module';
 import { CategoriesModule } from '../../core/categories/categories.module';
+import { QUERIES } from './commands-and-queries/queries';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { CategoriesModule } from '../../core/categories/categories.module';
     CqrsModule,
   ],
   controllers: [RecipientApiController],
-  providers: [TasksService],
+  providers: [...QUERIES, TasksService],
 })
 export class RecipientApiModule {}

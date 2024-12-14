@@ -1,8 +1,8 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { SetAdminPasswordCommand } from '../common/commands/set-admin-password.command';
+import { SetAdminPasswordCommand } from '../common/commands-and-queries/set-admin-password.command';
 import { UsersService } from './users/users.service';
-import { AuthenticateCommand } from '../common/commands/authenticate.command';
-import { SendTokenCommand } from '../common/commands/send-token.command';
+import { AuthenticateCommand } from '../common/commands-and-queries/authenticate.command';
+import { SendTokenCommand } from '../common/commands-and-queries/send-token.command';
 
 @CommandHandler(SetAdminPasswordCommand)
 export class SetAdminPassordHandler implements ICommandHandler<SetAdminPasswordCommand> {

@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CheckJwtCommand } from '../common/commands/check-jwt.command';
+import { CheckJwtCommand } from '../common/commands-and-queries/check-jwt.command';
 import { AuthService } from './auth/auth.service';
 
 @CommandHandler(CheckJwtCommand)

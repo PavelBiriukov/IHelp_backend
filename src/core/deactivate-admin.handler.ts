@@ -1,8 +1,8 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersService } from './users/users.service';
-import { DeactivateAdminCommand } from '../common/commands/deactivate-admin.command';
-import { AuthenticateCommand } from '../common/commands/authenticate.command';
-import { SendTokenCommand } from '../common/commands/send-token.command';
+import { DeactivateAdminCommand } from '../common/commands-and-queries/deactivate-admin.command';
+import { AuthenticateCommand } from '../common/commands-and-queries/authenticate.command';
+import { SendTokenCommand } from '../common/commands-and-queries/send-token.command';
 
 @CommandHandler(DeactivateAdminCommand)
 export class DeactivateAdminHandler implements ICommandHandler<DeactivateAdminCommand> {

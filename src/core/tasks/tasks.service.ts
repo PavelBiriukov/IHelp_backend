@@ -8,7 +8,7 @@ import {
 import { FilterQuery } from 'mongoose';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { UpdateVolunteerProfileCommand } from '../../common/commands/update-volunteer-profile.command';
+import { UpdateVolunteerProfileCommand } from '../../common/commands-and-queries/update-volunteer-profile.command';
 import { TasksRepository } from '../../datalake/task/task.repository';
 import { UsersRepository } from '../../datalake/users/users.repository';
 import { CreateTaskDto, GetTasksDto } from '../../common/dto/tasks.dto';
@@ -27,7 +27,8 @@ import {
 import { AnyUserInterface, UserRole } from '../../common/types/user.types';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { User } from '../../datalake/users/schemas/user.schema';
-import { CreateTaskChatCommand } from '../../common/commands/create-chat.command';
+import { CreateTaskChatCommand } from '../../common/commands-and-queries/create-chat.command';
+import { PublicTasksResponseDto } from '../../common/types/api.types';
 
 @Injectable()
 export class TasksService {
@@ -73,7 +74,7 @@ export class TasksService {
     });
   }
 
-  public async getAllVirginTasks(dto: Partial<GetTasksDto>) {
+  public async getAllVirginTasks(dto: Partial<GetTasksDto>): Promise<PublicTasksResponseDto> {
     const { location: center, distance } = dto;
     const query: FilterQuery<Task> = {
       status: TaskStatus.CREATED,
@@ -84,7 +85,23 @@ export class TasksService {
         },
       },
     };
-    return this.tasksRepo.find(query);
+
+    const tasks = await this.tasksRepo.find(query);
+    return tasks.map((task) => {
+      return {
+        category: {
+          title: task.category.title,
+          points: task.category.points,
+        },
+        location: task.location,
+        description: task.description,
+        recipient: {
+          avatar: task.recipient.avatar,
+          name: task.recipient.name,
+          _id: task.recipient._id,
+        },
+      };
+    });
   }
 
   public async startModeration(taskId: string, moderator: AnyUserInterface) {

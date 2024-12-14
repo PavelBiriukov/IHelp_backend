@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CreateTaskChatCommand } from '../common/commands/create-chat.command';
+import { CreateTaskChatCommand } from '../common/commands-and-queries/create-chat.command';
 import { ChatService } from './chat/chats.service';
 import { CreateTaskChatDtoType } from '../common/types/chats.types';
 import { VolunteerInterface, RecipientInterface } from '../common/types/user.types';

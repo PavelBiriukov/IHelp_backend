@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { UpdatePointsInTasksCommand } from '../../common/commands/update-points.command';
+import { UpdatePointsInTasksCommand } from '../../common/commands-and-queries/update-points.command';
 import { ApiUpdateCategoryDto } from '../../api/admin-api/dto/update-category.dto';
 import { ApiBulkUpdateCategoriesDto } from '../../api/admin-api/dto/bulk-update-categories.dto';
 import exceptions from '../../common/constants/exceptions';

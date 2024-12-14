@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UpdatePointsInTasksCommand } from '../common/commands/update-points.command';
+import { UpdatePointsInTasksCommand } from '../common/commands-and-queries/update-points.command';
 import { TasksService } from './tasks/tasks.service';
 
 @CommandHandler(UpdatePointsInTasksCommand)

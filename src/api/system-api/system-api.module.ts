@@ -13,6 +13,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { SystemApiController } from './system-api.controller';
 import { WebsocketApiModule } from '../websocket-api/websocket-api.module';
 import { COMMANDS } from './commands-and-queries/commands';
+import { QUERIES } from './commands-and-queries/queries';
 
 @Module({
   imports: [
@@ -29,6 +30,6 @@ import { COMMANDS } from './commands-and-queries/commands';
     WebsocketApiModule,
   ],
   controllers: [SystemApiController],
-  providers: [...COMMANDS, AuthService, JwtService],
+  providers: [...COMMANDS, ...QUERIES, AuthService, JwtService],
 })
 export class SystemApiModule {}

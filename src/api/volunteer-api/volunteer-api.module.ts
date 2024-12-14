@@ -8,6 +8,7 @@ import { CategoryRepositoryModule } from '../../datalake/category/category-repos
 import { UsersModule } from '../../core/users/users.module';
 import { CategoriesModule } from '../../core/categories/categories.module';
 import { VolunteerApiController } from './volunteer-api.controller';
+import { QUERIES } from './commands-and-queries/queries';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { VolunteerApiController } from './volunteer-api.controller';
     CqrsModule,
   ],
   controllers: [VolunteerApiController],
-  providers: [TasksService],
+  providers: [...QUERIES, TasksService],
 })
 export class VolunteerApiModule {}

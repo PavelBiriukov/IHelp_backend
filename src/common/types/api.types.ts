@@ -1,10 +1,11 @@
-import { UserRole } from './user.types';
+import { RecipientInterface, UserRole } from './user.types';
 import { PointGeoJSONInterface } from './point-geojson.types';
 import { User } from '../../datalake/users/schemas/user.schema';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { Recipient } from '../../datalake/users/schemas/recipient.schema';
 import { Admin } from '../../datalake/users/schemas/admin.schema';
 import { AccessRights } from './access-rights.types';
+import { CategoryInterface } from './category.types';
 
 export interface VKLoginDtoInterface {
   code: string;
@@ -64,3 +65,12 @@ export interface EnrichedRequest extends Request {
 export interface UpdatePasswordDtoInterface {
   password: string;
 }
+
+export interface PublicTaskResponseDto {
+  description?: string;
+  location: PointGeoJSONInterface;
+  category: Pick<CategoryInterface, 'points' | 'title'>;
+  recipient: Pick<RecipientInterface, 'name' | '_id' | 'avatar'>;
+}
+
+export type PublicTasksResponseDto = Array<PublicTaskResponseDto>;

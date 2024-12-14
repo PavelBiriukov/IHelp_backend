@@ -1,8 +1,8 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersService } from './users/users.service';
-import { AuthenticateCommand } from '../common/commands/authenticate.command';
-import { SendTokenCommand } from '../common/commands/send-token.command';
-import { UpgradeUserCommand } from '../common/commands/upgrade-user.command';
+import { AuthenticateCommand } from '../common/commands-and-queries/authenticate.command';
+import { SendTokenCommand } from '../common/commands-and-queries/send-token.command';
+import { UpgradeUserCommand } from '../common/commands-and-queries/upgrade-user.command';
 
 @CommandHandler(UpgradeUserCommand)
 export class UpgradeUserHandler implements ICommandHandler<UpgradeUserCommand> {
