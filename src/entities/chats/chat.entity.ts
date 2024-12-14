@@ -29,9 +29,10 @@ import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
 import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
 import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
 import { ChatType } from '../../common/types/system.types';
+import { ChatEntityInterface } from '../../common/types/entities.interfaces';
 
 @Injectable({ scope: Scope.REQUEST })
-export class ChatEntity<T extends typeof ChatType> {
+export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterface<T> {
   private _id: ObjectId | string | null = null;
 
   private _createdAt: string | Date | null = null;
@@ -193,7 +194,7 @@ export class ChatEntity<T extends typeof ChatType> {
           opponentChat: this._opponentChat,
           recipientLastReadAt: this._recipientLastReadAt,
           adminLastReadAt: this._adminLastReadAt,
-        } as ConflictChatWithVolunteerInterface;
+        } as ConflictChatWithRecipientInterface;
       }
       default:
         throw new InternalServerErrorException(
@@ -203,7 +204,7 @@ export class ChatEntity<T extends typeof ChatType> {
     }
   }
 
-  public async create(dto: CreateChatEntityDtoTypes): Promise<ChatEntity<T>> {
+  async create(dto: CreateChatEntityDtoTypes): Promise<ChatEntity<T>> {
     const chat = (await (await this.chatsRepo.create(dto)).save()) as AnyChat;
     this._setMeta(chat);
     this._doc = chat;
@@ -211,14 +212,14 @@ export class ChatEntity<T extends typeof ChatType> {
     return this;
   }
 
-  public toObject(): { metadata: AnyChatInterface; messages: Array<MessageInterface> } {
+  toObject(): { metadata: AnyChatInterface; messages: Array<MessageInterface> } {
     return {
       metadata: this._getMeta(),
       messages: this._messages,
     };
   }
 
-  public get chatId(): ObjectId | string {
+  get chatId(): ObjectId | string {
     if (!this._id) {
       throw new InternalServerErrorException(
         { message: 'Внутренняя ошибка сервера' },
@@ -228,11 +229,11 @@ export class ChatEntity<T extends typeof ChatType> {
     return this._id;
   }
 
-  public get meta() {
+  get meta(): AnyChatInterface {
     return this._getMeta();
   }
 
-  public async setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntity<T>> {
+  async setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntity<T>> {
     if (
       this._type !== ChatType.CONFLICT_CHAT_WITH_RECIPIENT ||
       this._type !== ChatType.CONFLICT_CHAT_WITH_VOLUNTEER
@@ -247,11 +248,11 @@ export class ChatEntity<T extends typeof ChatType> {
     return this;
   }
 
-  public async find(chatId: string): Promise<ChatEntity<T>>;
+  async find(chatId: string): Promise<ChatEntity<T>>;
 
-  public async find(dto: Record<string, unknown>): Promise<ChatEntity<T>>;
+  async find(dto: Record<string, unknown>): Promise<ChatEntity<T>>;
 
-  public async find(...data): Promise<ChatEntity<T>> {
+  async find(...data): Promise<ChatEntity<T>> {
     let chat: AnyChat | Array<AnyChat>;
     const [param] = data;
     if (typeof param === 'string') {
@@ -275,11 +276,11 @@ export class ChatEntity<T extends typeof ChatType> {
     return this;
   }
 
-  public get messages(): Array<MessageInterface> {
+  get messages(): Array<MessageInterface> {
     return this._messages;
   }
 
-  public async postMessage(dto: VirginMessageInterface): Promise<MessageInterface> {
+  async postMessage(dto: VirginMessageInterface): Promise<MessageInterface> {
     if (dto.chatId !== this._id) {
       throw new ForbiddenException('Нельзя отправлять сообщение не в соответствующий чат.');
     }
@@ -291,7 +292,7 @@ export class ChatEntity<T extends typeof ChatType> {
     return message;
   }
 
-  public async close(): Promise<ChatEntity<T>> {
+  async close(): Promise<ChatEntity<T>> {
     if (!this._isActive) {
       return this;
     }
@@ -303,7 +304,7 @@ export class ChatEntity<T extends typeof ChatType> {
     return this;
   }
 
-  public async reopen(): Promise<ChatEntity<T>> {
+  async reopen(): Promise<ChatEntity<T>> {
     if (this._isActive) {
       return this;
     }
