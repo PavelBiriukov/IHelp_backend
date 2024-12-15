@@ -1,4 +1,18 @@
-import { Controller, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Param,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
+import { ApiOkResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AccessControlGuard } from '../../common/guards/access-control.guard';
 import { UsersService } from '../../core/users/users.service';
@@ -9,6 +23,7 @@ import { User } from '../../datalake/users/schemas/user.schema';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { GetTasksSearchDto } from '../recipient-api/dto/get-tasks-query.dto';
 import { TaskReport, TaskStatus } from '../../common/types/task.types';
+import { ReleaseTaskVolunteerCommand } from '../../common/commands/release-task-volunteer.command';
 
 @UseGuards(JwtAuthGuard)
 @UseGuards(AccessControlGuard)
@@ -16,7 +31,8 @@ import { TaskReport, TaskStatus } from '../../common/types/task.types';
 export class VolunteerApiController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly tasksService: TasksService
+    private readonly tasksService: TasksService,
+    private readonly commandBus: CommandBus
   ) {}
 
   @AccessControlList({ role: UserRole.VOLUNTEER, level: UserStatus.UNCONFIRMED })
@@ -85,5 +101,43 @@ export class VolunteerApiController {
       }
     );
     return Promise.resolve([...completed, ...conflicted]);
+  }
+
+  @Delete('/tasks/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiTags('Release the task by volunteer')
+  @ApiOperation({
+    summary: 'Снимает задачу с волонтера',
+    description:
+      'Снимает задачу с волонтера, если она не постоянная/бессрочная и до начала выполнения осталось более 24 часов',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Идентификатор задачи',
+    type: 'string',
+    example: '675db87355d51b00eafc7c5a',
+    required: true,
+  })
+  @ApiOkResponse({
+    status: 204,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Не удалось снять задачу с волонтёра, произошла внутренняя ошибка сервера',
+  })
+  @AccessControlList({ role: UserRole.VOLUNTEER, level: UserStatus.CONFIRMED })
+  public async deleteTaskById(@Param('id') taskId: string, @Req() req: Express.Request) {
+    const result = await this.commandBus.execute<ReleaseTaskVolunteerCommand, boolean>(
+      new ReleaseTaskVolunteerCommand(taskId, req.user as AnyUserInterface)
+    );
+
+    if (result === false) {
+      throw new HttpException(
+        {
+          message: 'Не удалось снять задачу с волонтёра, произошла внутренняя ошибка сервера',
+        },
+        500
+      );
+    } else return {};
   }
 }
