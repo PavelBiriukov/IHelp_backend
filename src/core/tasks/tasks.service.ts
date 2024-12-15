@@ -8,6 +8,7 @@ import {
 import { FilterQuery } from 'mongoose';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { dayInMs } from '../../common/constants';
 import { UpdateVolunteerProfileCommand } from '../../common/commands/update-volunteer-profile.command';
 import { TasksRepository } from '../../datalake/task/task.repository';
 import { UsersRepository } from '../../datalake/users/users.repository';
@@ -496,6 +497,50 @@ export class TasksService {
         cause: 'Обновление поинтов задачи не выполнено или выполнено с ошибкой',
       });
     }
+
+    return res;
+  }
+
+  public async releaseTask(taskId: string, user: AnyUserInterface) {
+    const task = await this.tasksRepo.findById(taskId);
+    if (task.status !== TaskStatus.ACCEPTED) {
+      throw new ForbiddenException('Нельзя отменить не принятую в работу задачу', {
+        cause: `Попытка пользователя с _id '${user._id}' отменить задачу с _id '${taskId}', которая не принята в работу`,
+      });
+    }
+    const { volunteer } = task;
+    if (volunteer && volunteer._id !== user._id) {
+      throw new ForbiddenException('Нельзя отказаться от чужой задачи', {
+        cause: `Попытка волонтёра с _id '${user._id}' отказаться от чужой задачи с _id '${taskId}'`,
+      });
+    }
+
+    if (!task.date) {
+      throw new ForbiddenException('Нельзя отказаться от постоянной/бессрочной задачи', {
+        cause: `Попытка пользователя с _id '${user._id}' отказаться от постоянной/бессрочной задачи с _id '${taskId}'`,
+      });
+    }
+
+    const startDateInMs = task.date.getTime();
+    const beforeStartTask = startDateInMs - new Date().getTime();
+    if (beforeStartTask / dayInMs <= 1) {
+      throw new ForbiddenException('Нельзя отказаться менее, чем за сутки от начала задачи', {
+        cause: `Попытка пользователя с _id '${user._id}' отказаться от задачи с _id '${taskId}' менее, чем за сутки до её начала`,
+      });
+    }
+
+    const query: FilterQuery<Task> = {
+      _id: taskId,
+    };
+
+    const res = await this.tasksRepo.findOneAndUpdate(query, {
+      $set: {
+        status: TaskStatus.CREATED,
+        volunteer: null,
+      },
+    });
+
+    // TODO реализовать закрытие чата при задаче
 
     return res;
   }
