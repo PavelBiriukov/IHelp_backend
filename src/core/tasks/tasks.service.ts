@@ -533,15 +533,13 @@ export class TasksService {
       _id: taskId,
     };
 
-    const res = await this.tasksRepo.findOneAndUpdate(query, {
+    return this.tasksRepo.findOneAndUpdate(query, {
       $set: {
         status: TaskStatus.CREATED,
         volunteer: null,
       },
     });
 
-    // TODO реализовать закрытие чата при задаче
-
-    return res;
+    // TODO: реализовать закрытие чата при задаче с помощью команды
   }
 }
