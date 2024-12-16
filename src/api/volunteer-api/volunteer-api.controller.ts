@@ -3,8 +3,8 @@ import {
   Delete,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
+  InternalServerErrorException,
   Param,
   Put,
   Query,
@@ -132,12 +132,9 @@ export class VolunteerApiController {
     );
 
     if (result === false) {
-      throw new HttpException(
-        {
-          message: 'Не удалось снять задачу с волонтёра, произошла внутренняя ошибка сервера',
-        },
-        500
-      );
+      throw new InternalServerErrorException({
+        message: 'Не удалось снять задачу с волонтёра, произошла внутренняя ошибка сервера',
+      });
     } else return {};
   }
 }
