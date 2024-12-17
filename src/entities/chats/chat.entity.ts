@@ -34,7 +34,7 @@ import { Chat } from '../../datalake/chats/schemas/chat.schema';
 import { Message } from '../../datalake/messages/schemas/messages.schema';
 
 @Injectable({ scope: Scope.REQUEST })
-export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterface<T> {
+export class ChatEntity implements ChatEntityInterface {
   private _id: ObjectId | string | null = null;
 
   private _createdAt: string | Date | null = null;
@@ -76,58 +76,51 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
 
   private _setMeta(chat: AnyChat) {
     const { _id, type, createdAt, updatedAt, isActive } = chat as Chat;
-    let data: Record<string, unknown> = { _id, type, createdAt, updatedAt, isActive };
+    this._id = _id;
+    this._type = type;
+    this._createdAt = createdAt;
+    this._updatedAt = updatedAt;
+    this._isActive = isActive;
     switch (type) {
       case ChatType.TASK_CHAT: {
         const { taskId, volunteer, recipient, volunteerLastReadAt, recipientLastReadAt } =
           chat as TaskChat;
-        data = {
-          ...data,
-          taskId,
-          volunteer,
-          recipient,
-          volunteerLastReadAt,
-          recipientLastReadAt,
-        };
+        this._taskId = taskId;
+        this._volunteer = volunteer;
+        this._recipient = recipient;
+        this._volunteerLastReadAt = volunteerLastReadAt;
+        this._recipientLastReadAt = recipientLastReadAt;
         break;
       }
       case ChatType.SYSTEM_CHAT: {
         const { user, admin, userLastReadAt, adminLastReadAt } = chat as SystemChat;
-        data = {
-          ...data,
-          user,
-          admin,
-          userLastReadAt,
-          adminLastReadAt,
-        };
+        this._user = user;
+        this._admin = admin;
+        this._userLastReadAt = userLastReadAt;
+        this._adminLastReadAt = adminLastReadAt;
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER: {
         const { taskId, volunteer, admin, opponentChat, volunteerLastReadAt, adminLastReadAt } =
           chat as ConflictChatWithVolunteer;
-        data = {
-          ...data,
-          taskId,
-          volunteer,
-          admin,
-          opponentChat,
-          volunteerLastReadAt,
-          adminLastReadAt,
-        };
+        this._taskId = taskId;
+        this._volunteer = volunteer;
+        this._admin = admin;
+        this._opponentChat = opponentChat;
+        this._volunteerLastReadAt = volunteerLastReadAt;
+        this._adminLastReadAt = adminLastReadAt;
+
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_RECIPIENT: {
         const { taskId, recipient, admin, opponentChat, recipientLastReadAt, adminLastReadAt } =
           chat as ConflictChatWithRecipient;
-        data = {
-          ...data,
-          taskId,
-          recipient,
-          admin,
-          opponentChat,
-          recipientLastReadAt,
-          adminLastReadAt,
-        };
+        this._taskId = taskId;
+        this._recipient = recipient;
+        this._admin = admin;
+        this._opponentChat = opponentChat;
+        this._recipientLastReadAt = recipientLastReadAt;
+        this._adminLastReadAt = adminLastReadAt;
         break;
       }
       default:
@@ -136,7 +129,6 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
           { cause: `У сущности чата установлен неверный тип чата: "${this._type}".` }
         );
     }
-    Object.assign(this, data);
   }
 
   private _getMeta() {
@@ -206,7 +198,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
     }
   }
 
-  async create(dto: CreateChatEntityDtoTypes): Promise<ChatEntity<T>> {
+  async create(dto: CreateChatEntityDtoTypes): Promise<ChatEntity> {
     const chat = (await (await this.chatsRepo.create(dto)).save()) as AnyChat;
     this._setMeta(chat);
     this._doc = chat;
@@ -235,7 +227,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
     return this._getMeta();
   }
 
-  async setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntity<T>> {
+  async setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntity> {
     if (
       this._type === ChatType.CONFLICT_CHAT_WITH_RECIPIENT ||
       this._type === ChatType.CONFLICT_CHAT_WITH_VOLUNTEER
@@ -249,11 +241,11 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
     return this;
   }
 
-  async find(chatId: string): Promise<ChatEntity<T>>;
+  async find(chatId: string): Promise<ChatEntity>;
 
-  async find(dto: Record<string, unknown>): Promise<ChatEntity<T>>;
+  async find(dto: Record<string, unknown>): Promise<ChatEntity>;
 
-  async find(...data): Promise<ChatEntity<T>> {
+  async find(...data): Promise<ChatEntity> {
     let chat: AnyChat | Array<AnyChat>;
     const [param] = data;
     if (typeof param === 'string') {
@@ -299,7 +291,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
     return message;
   }
 
-  async close(): Promise<ChatEntity<T>> {
+  async close(): Promise<ChatEntity> {
     if (!this._isActive) {
       return this;
     }
@@ -311,7 +303,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
     return this;
   }
 
-  async reopen(): Promise<ChatEntity<T>> {
+  async reopen(): Promise<ChatEntity> {
     if (this._isActive) {
       return this;
     }
