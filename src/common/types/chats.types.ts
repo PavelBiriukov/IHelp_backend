@@ -6,7 +6,7 @@ import {
   RecipientInterface,
   VolunteerInterface,
 } from './user.types';
-import { ChatType, MongooseIdAndTimestampsInterface } from './system.types';
+import { ChatType, ChatTypes, MongooseIdAndTimestampsInterface } from './system.types';
 // eslint-disable-next-line import/no-cycle
 import { Chat } from '../../datalake/chats/schemas/chat.schema';
 import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
@@ -14,18 +14,20 @@ import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
 import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
 import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
 
-export interface MessageInterface {
-  _id: ObjectId | string;
+export interface MessageModelInterface {
   body: string;
   attaches: string[];
-  createdAt: Date | string;
-  updatedAt: Date | string;
   author: AnyUserInterface;
   chatId: ObjectId | string | null;
+  timestamp: Date;
 }
 
-export interface VirginMessageInterface
-  extends Pick<MessageInterface, 'body' | 'chatId' | 'author'> {
+export interface MessageInterface extends MessageModelInterface, MongooseIdAndTimestampsInterface {}
+
+export interface VirginMessageInterface {
+  body: string;
+  author: AnyUserInterface;
+  chatId: ObjectId | string | null;
   attaches?: string[];
 }
 
@@ -35,13 +37,8 @@ export type VolunteerConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_VOLUN
 export type RecipientConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_RECIPIENT;
 export type AnyConflictChatType = VolunteerConflictChatType | RecipientConflictChatType;
 
-export type TaskBearingChatType = TaskChatType | AnyConflictChatType;
-export type VolunteerBearingChatType = TaskChatType | VolunteerConflictChatType;
-export type RecipientBearingChatType = TaskChatType | RecipientConflictChatType;
-export type AdminBearingChatType = SystemChatType | AnyConflictChatType;
-
 export interface ChatModelInterface {
-  type: ChatType;
+  type: ChatTypes;
   isActive: boolean;
 }
 

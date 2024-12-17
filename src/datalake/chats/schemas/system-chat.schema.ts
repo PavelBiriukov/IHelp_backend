@@ -1,5 +1,6 @@
-import { SchemaTypes } from 'mongoose';
+import { Document, SchemaTypes } from 'mongoose';
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
+// eslint-disable-next-line import/no-cycle
 import { SystemChatModelInterface } from '../../../common/types/chats.types';
 import {
   VolunteerInterface,

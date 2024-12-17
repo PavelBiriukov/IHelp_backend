@@ -5,7 +5,9 @@ import {
   InternalServerErrorException,
   Scope,
 } from '@nestjs/common';
-import { type ObjectId } from 'mongoose';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Document, Model, type ObjectId } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 import {
   AnyChat,
   AnyChatInterface,
@@ -22,14 +24,14 @@ import {
   RecipientInterface,
   VolunteerInterface,
 } from '../../common/types/user.types';
-import { ChatsRepository } from '../../datalake/chats/chats.repository';
-import { MessagesRepository } from '../../datalake/messages/messages.repository';
 import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
 import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
 import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
 import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
-import { ChatType } from '../../common/types/system.types';
+import { ChatType, ChatTypes } from '../../common/types/system.types';
 import { ChatEntityInterface } from '../../common/types/entities.interfaces';
+import { Chat } from '../../datalake/chats/schemas/chat.schema';
+import { Message } from '../../datalake/messages/schemas/messages.schema';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterface<T> {
@@ -39,7 +41,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
 
   private _updatedAt: string | Date | null = null;
 
-  private _type: ChatType | null = null;
+  private _type: ChatTypes | null = null;
 
   private _taskId: ObjectId | string | null = null;
 
@@ -68,15 +70,15 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
   private _doc: AnyChat | null = null;
 
   constructor(
-    private readonly chatsRepo: ChatsRepository,
-    private readonly messagesRepo: MessagesRepository
+    @InjectModel(Chat.name) private readonly chatsRepo: Model<Chat>,
+    @InjectModel(Message.name) private readonly messagesRepo: Model<Message>
   ) {}
 
   private _setMeta(chat: AnyChat) {
-    const { _id, type, createdAt, updatedAt, isActive } = chat;
+    const { _id, type, createdAt, updatedAt, isActive } = chat as Chat;
     let data: Record<string, unknown> = { _id, type, createdAt, updatedAt, isActive };
     switch (type) {
-      case ChatType.TASK_CHAT as T: {
+      case ChatType.TASK_CHAT: {
         const { taskId, volunteer, recipient, volunteerLastReadAt, recipientLastReadAt } =
           chat as TaskChat;
         data = {
@@ -89,7 +91,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
         };
         break;
       }
-      case ChatType.SYSTEM_CHAT as T: {
+      case ChatType.SYSTEM_CHAT: {
         const { user, admin, userLastReadAt, adminLastReadAt } = chat as SystemChat;
         data = {
           ...data,
@@ -100,7 +102,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
         };
         break;
       }
-      case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER as T: {
+      case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER: {
         const { taskId, volunteer, admin, opponentChat, volunteerLastReadAt, adminLastReadAt } =
           chat as ConflictChatWithVolunteer;
         data = {
@@ -114,7 +116,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
         };
         break;
       }
-      case ChatType.CONFLICT_CHAT_WITH_RECIPIENT as T: {
+      case ChatType.CONFLICT_CHAT_WITH_RECIPIENT: {
         const { taskId, recipient, admin, opponentChat, recipientLastReadAt, adminLastReadAt } =
           chat as ConflictChatWithRecipient;
         data = {
@@ -139,7 +141,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
 
   private _getMeta() {
     switch (this._type) {
-      case ChatType.TASK_CHAT as T: {
+      case ChatType.TASK_CHAT: {
         return {
           type: this._type,
           _id: this._id,
@@ -153,7 +155,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
           recipientLastReadAt: this._recipientLastReadAt,
         } as TaskChatInterface;
       }
-      case ChatType.SYSTEM_CHAT as T: {
+      case ChatType.SYSTEM_CHAT: {
         return {
           type: this._type,
           _id: this._id,
@@ -166,7 +168,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
           adminLastReadAt: this._adminLastReadAt,
         } as SystemChatInterface;
       }
-      case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER as T: {
+      case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER: {
         return {
           type: this._type,
           _id: this._id,
@@ -181,7 +183,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
           adminLastReadAt: this._adminLastReadAt,
         } as ConflictChatWithVolunteerInterface;
       }
-      case ChatType.CONFLICT_CHAT_WITH_RECIPIENT as T: {
+      case ChatType.CONFLICT_CHAT_WITH_RECIPIENT: {
         return {
           type: this._type,
           _id: this._id,
@@ -235,16 +237,15 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
 
   async setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntity<T>> {
     if (
-      this._type !== ChatType.CONFLICT_CHAT_WITH_RECIPIENT ||
-      this._type !== ChatType.CONFLICT_CHAT_WITH_VOLUNTEER
+      this._type === ChatType.CONFLICT_CHAT_WITH_RECIPIENT ||
+      this._type === ChatType.CONFLICT_CHAT_WITH_VOLUNTEER
     ) {
-      return this;
+      const chat = (await this.chatsRepo.findOneAndUpdate(
+        { type: this._type, _id: this._id },
+        { opponentChat: opponentChatId }
+      )) as ConflictChatWithVolunteerInterface | ConflictChatWithRecipientInterface;
+      this._opponentChat = chat.opponentChat;
     }
-    const chat = (await this.chatsRepo.findOneAndUpdate(
-      { type: this._type, _id: this._id },
-      { opponentChat: opponentChatId }
-    )) as ConflictChatWithVolunteerInterface | ConflictChatWithRecipientInterface;
-    this._opponentChat = chat.opponentChat;
     return this;
   }
 
@@ -271,7 +272,7 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
     }
     this._setMeta(chat);
     this._doc = chat;
-    const messages = await this.messagesRepo.find({ chatId: this._id });
+    const messages = await this.messagesRepo.find({ chatId: this._id }).exec();
     this._messages = messages.map((msg) => msg.toObject());
     return this;
   }
@@ -284,10 +285,16 @@ export class ChatEntity<T extends typeof ChatType> implements ChatEntityInterfac
     if (dto.chatId !== this._id) {
       throw new ForbiddenException('Нельзя отправлять сообщение не в соответствующий чат.');
     }
-    const { _id, createdAt, updatedAt, body, attaches, author, chatId } = await (
-      await this.messagesRepo.create(dto)
-    ).save();
-    const message: MessageInterface = { _id, createdAt, updatedAt, body, attaches, author, chatId };
+    const msg = await this.messagesRepo.create({ ...dto, timestamp: Date.now() });
+    const { _id, timestamp, body, attaches, author, chatId } = msg.toObject();
+    const message = {
+      _id,
+      timestamp,
+      body,
+      attaches,
+      author,
+      chatId,
+    } as MessageInterface;
     this._messages.push(message);
     return message;
   }

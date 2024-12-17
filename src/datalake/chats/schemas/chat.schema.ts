@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId, SchemaTypes } from 'mongoose';
 // eslint-disable-next-line import/no-cycle
 import { ChatModelInterface } from '../../../common/types/chats.types';
-import { ChatType } from '../../../common/types/system.types';
+import { ChatType, ChatTypes } from '../../../common/types/system.types';
 
 @Schema({
   timestamps: true,
@@ -25,7 +25,7 @@ export class Chat extends Document implements ChatModelInterface {
     type: SchemaTypes.String,
     enum: Object.values(ChatType),
   })
-  type: ChatType;
+  type: ChatTypes;
 
   @Prop({
     required: true,

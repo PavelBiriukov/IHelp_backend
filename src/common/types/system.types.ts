@@ -49,5 +49,5 @@ export const ChatType = {
   CONFLICT_CHAT_WITH_VOLUNTEER: 'CONFLICT_CHAT_WITH_VOLUNTEER',
   CONFLICT_CHAT_WITH_RECIPIENT: 'CONFLICT_CHAT_WITH_RECIPIENT',
 } as const;
-export const ChatTypes = ChatType;
-export type ChatType = keyof typeof ChatType;
+// export const ChatTypes = ChatType;
+export type ChatTypes = keyof typeof ChatType;
