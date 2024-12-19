@@ -5,28 +5,27 @@ import {
   MessageInterface,
   VirginMessageInterface,
 } from './chats.types';
-import { ChatType } from './system.types';
 
-export interface ChatEntityInterface<T extends typeof ChatType> {
+export interface ChatEntityInterface {
   readonly chatId: ObjectId | string;
   readonly meta: AnyChatInterface;
   readonly messages: Array<MessageInterface>;
 
-  create(dto: CreateChatEntityDtoTypes): Promise<ChatEntityInterface<T>>;
+  create(dto: CreateChatEntityDtoTypes): Promise<ChatEntityInterface>;
 
   toObject(): { metadata: AnyChatInterface; messages: Array<MessageInterface> };
 
-  setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntityInterface<T>>;
+  setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntityInterface>;
 
-  find(chatId: string): Promise<ChatEntityInterface<T>>;
+  find(chatId: string): Promise<ChatEntityInterface>;
 
-  find(dto: Record<string, unknown>): Promise<ChatEntityInterface<T>>;
+  find(dto: Record<string, unknown>): Promise<ChatEntityInterface>;
 
-  find(...data): Promise<ChatEntityInterface<T>>;
+  find(...data): Promise<ChatEntityInterface>;
 
   postMessage(dto: VirginMessageInterface): Promise<MessageInterface>;
 
-  close(): Promise<ChatEntityInterface<T>>;
+  close(): Promise<ChatEntityInterface>;
 
-  reopen(): Promise<ChatEntityInterface<T>>;
+  reopen(): Promise<ChatEntityInterface>;
 }
