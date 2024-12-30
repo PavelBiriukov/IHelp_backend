@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { type ObjectId } from 'mongoose';
 import {
   AdminInterface,
@@ -5,28 +6,39 @@ import {
   RecipientInterface,
   VolunteerInterface,
 } from './user.types';
-import { MongooseIdAndTimestampsInterface } from './system.types';
+import { ChatType, ChatTypes, MongooseIdAndTimestampsInterface } from './system.types';
+// eslint-disable-next-line import/no-cycle
+import { Chat } from '../../datalake/chats/schemas/chat.schema';
+import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
+import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
+import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
+import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
 
-export interface MessageInterface {
-  _id: ObjectId | string;
+export interface MessageModelInterface {
   body: string;
   attaches: string[];
-  createdAt: Date | string;
   author: AnyUserInterface;
-  chatId: ObjectId | string;
+  chatId: ObjectId | string | null;
+  timestamp: Date;
 }
 
-export const ChatTypes = {
-  TASK_CHAT: 'TaskChat',
-  SYSTEM_CHAT: 'SystemChat',
-  CONFLICT_CHAT_WITH_VOLUNTEER: 'ConflictChatWithVolunteer',
-  CONFLICT_CHAT_WITH_RECIPIENT: 'ConflictChatWithRecipient',
-} as const;
+export interface MessageInterface extends MessageModelInterface, MongooseIdAndTimestampsInterface {}
 
-export type ChatType = keyof typeof ChatTypes;
+export interface VirginMessageInterface {
+  body: string;
+  author: AnyUserInterface;
+  chatId: ObjectId | string | null;
+  attaches?: string[];
+}
+
+export type TaskChatType = typeof ChatType.TASK_CHAT;
+export type SystemChatType = typeof ChatType.SYSTEM_CHAT;
+export type VolunteerConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_VOLUNTEER;
+export type RecipientConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_RECIPIENT;
+export type AnyConflictChatType = VolunteerConflictChatType | RecipientConflictChatType;
 
 export interface ChatModelInterface {
-  type: ChatType;
+  type: ChatTypes;
   isActive: boolean;
 }
 
@@ -81,6 +93,19 @@ export interface ConflictChatWithRecipientInterface
   extends ChatModelInterface,
     ConflictChatWithRecipientModelInterface,
     MongooseIdAndTimestampsInterface {}
+
+export type AnyChatInterface =
+  | TaskChatInterface
+  | SystemChatInterface
+  | ConflictChatWithVolunteerInterface
+  | ConflictChatWithRecipientInterface;
+
+export type AnyChat =
+  | Chat
+  | SystemChat
+  | TaskChat
+  | ConflictChatWithVolunteer
+  | ConflictChatWithRecipient;
 
 export interface WatermarkInterface {
   watermark: string;
@@ -159,7 +184,26 @@ export type AnyUserChatsResponseDtoInterface =
   | GetUserChatsResponseDtoInterface
   | GetAdminChatsResponseDtoInterface;
 
-export type CreateTaskChatDtoType = Pick<
-  TaskChatInterface,
-  'taskId' | 'type' | 'volunteer' | 'recipient'
->;
+export type CreateChatEntityDtoBaseType<T> = T extends TaskChatType
+  ? Pick<TaskChatInterface, 'taskId' | 'type' | 'volunteer' | 'recipient'>
+  : T extends SystemChatType
+  ? Pick<SystemChatInterface, 'type' | 'user'>
+  : T extends VolunteerConflictChatType
+  ? Pick<ConflictChatWithVolunteerInterface, 'type' | 'taskId' | 'admin' | 'volunteer'>
+  : T extends RecipientConflictChatType
+  ? Pick<ConflictChatWithRecipientInterface, 'type' | 'taskId' | 'admin' | 'recipient'>
+  : never;
+
+export type CreateTaskChatEntityDtoType = CreateChatEntityDtoBaseType<TaskChatType>;
+export type CreateSystemChatEntityDtoType = CreateChatEntityDtoBaseType<SystemChatType>;
+export type CreateConflictVolunteerChatEntityDtoType =
+  CreateChatEntityDtoBaseType<VolunteerConflictChatType>;
+export type CreateConflictRecipientChatEntityDtoType =
+  CreateChatEntityDtoBaseType<RecipientConflictChatType>;
+export type CreateChatEntityDtoTypes =
+  | CreateTaskChatEntityDtoType
+  | CreateSystemChatEntityDtoType
+  | CreateConflictVolunteerChatEntityDtoType
+  | CreateConflictRecipientChatEntityDtoType;
+
+export type CreateChatDtoType<T extends CreateChatEntityDtoTypes> = Omit<T, '_id' | 'type'>;
