@@ -1,29 +1,18 @@
 import { ObjectId } from 'mongoose';
-import {
-  AnyChatInterface,
-  CreateChatEntityDtoTypes,
-  MessageInterface,
-  VirginMessageInterface,
-} from './chats.types';
+import { AnyChatInterface, MessageInterface, VirginMessageInterface } from './chats.types';
+import { UserRole } from './user.types';
 
 export interface ChatEntityInterface {
   readonly chatId: ObjectId | string;
   readonly meta: AnyChatInterface;
   readonly messages: Array<MessageInterface>;
-
-  create(dto: CreateChatEntityDtoTypes): Promise<ChatEntityInterface>;
+  readonly lastPost: MessageInterface;
 
   toObject(): { metadata: AnyChatInterface; messages: Array<MessageInterface> };
 
-  setOpponentChat(opponentChatId: ObjectId | string): Promise<ChatEntityInterface>;
+  postMessage(dto: VirginMessageInterface): Promise<ChatEntityInterface>;
 
-  find(chatId: string): Promise<ChatEntityInterface>;
-
-  find(dto: Record<string, unknown>): Promise<ChatEntityInterface>;
-
-  find(...data): Promise<ChatEntityInterface>;
-
-  postMessage(dto: VirginMessageInterface): Promise<MessageInterface>;
+  updateWatermark(role: UserRole, timestamp: Date);
 
   close(): Promise<ChatEntityInterface>;
 

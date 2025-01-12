@@ -16,6 +16,7 @@ import {
 import {
   AdminInterface,
   RecipientInterface,
+  UserRole,
   VolunteerInterface,
 } from '../../common/types/user.types';
 import { ChatType, ChatTypes } from '../../common/types/system.types';
@@ -193,7 +194,7 @@ export class ChatEntity implements ChatEntityInterface {
     }
   }
 
-  toObject(): { metadata: AnyChatInterface; messages: Array<MessageInterface> } {
+  public toObject(): { metadata: AnyChatInterface; messages: Array<MessageInterface> } {
     return {
       metadata: this._getMeta(),
       messages: this._messages,
@@ -218,7 +219,7 @@ export class ChatEntity implements ChatEntityInterface {
     return this._messages;
   }
 
-  async postMessage(dto: VirginMessageInterface): Promise<ChatEntity> {
+  public async postMessage(dto: VirginMessageInterface): Promise<ChatEntity> {
     if (dto.chatId !== this._id) {
       throw new ForbiddenException('Нельзя отправлять сообщение не в соответствующий чат.');
     }
@@ -241,7 +242,7 @@ export class ChatEntity implements ChatEntityInterface {
     return this._lastPost;
   }
 
-  async close(): Promise<ChatEntity> {
+  public async close(): Promise<ChatEntity> {
     if (!this._isActive) {
       return this;
     }
@@ -253,7 +254,7 @@ export class ChatEntity implements ChatEntityInterface {
     return this;
   }
 
-  async reopen(): Promise<ChatEntity> {
+  public async reopen(): Promise<ChatEntity> {
     if (this._isActive) {
       return this;
     }
@@ -262,6 +263,164 @@ export class ChatEntity implements ChatEntityInterface {
       { isActive: true }
     )) as TaskChatInterface;
     this._isActive = chat.isActive;
+    return this;
+  }
+
+  public async updateWatermark(role: UserRole, lastread: Date) {
+    switch (this._type) {
+      case ChatType.TASK_CHAT: {
+        switch (role) {
+          case UserRole.VOLUNTEER: {
+            const { volunteerLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { volunteerLastReadAt: lastread },
+                { new: true }
+              )
+              .exec();
+            this._volunteerLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          case UserRole.RECIPIENT: {
+            const { recipientLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { recipientLastReadAt: lastread },
+                { new: true }
+              )
+              .exec();
+            this._recipientLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          default:
+            throw new InternalServerErrorException(
+              { message: 'Внутренняя ошибка сервера' },
+              {
+                cause: `В вызов ChatEntity.updateWatermark() для сущности типа "${this._type}" передана некорректная role: "${role}".`,
+              }
+            );
+        }
+        break;
+      }
+      case ChatType.SYSTEM_CHAT: {
+        switch (role) {
+          case UserRole.VOLUNTEER:
+          case UserRole.RECIPIENT:
+          case UserRole.USER: {
+            const { userLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { userLastReadAt: lastread },
+                { new: true }
+              )
+              .exec();
+            this._userLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          case UserRole.ADMIN: {
+            const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { adminLastReadAt: lastread },
+                { new: true }
+              )
+              .exec();
+            this._adminLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          default:
+            throw new InternalServerErrorException(
+              { message: 'Внутренняя ошибка сервера' },
+              {
+                cause: `В вызов ChatEntity.updateWatermark() для сущности типа "${this._type}" передана некорректная role: "${role}".`,
+              }
+            );
+        }
+        break;
+      }
+      case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER: {
+        switch (role) {
+          case UserRole.VOLUNTEER: {
+            const { volunteerLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { volunteerLastReadAt: lastread }
+              )
+              .exec();
+            this._volunteerLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          case UserRole.ADMIN: {
+            const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { adminLastReadAt: lastread },
+                { new: true }
+              )
+              .exec();
+            this._adminLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          default:
+            throw new InternalServerErrorException(
+              { message: 'Внутренняя ошибка сервера' },
+              {
+                cause: `В вызов ChatEntity.updateWatermark() для сущности типа "${this._type}" передана некорректная role: "${role}".`,
+              }
+            );
+        }
+        break;
+      }
+      case ChatType.CONFLICT_CHAT_WITH_RECIPIENT: {
+        switch (role) {
+          case UserRole.ADMIN: {
+            const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { adminLastReadAt: lastread },
+                { new: true }
+              )
+              .exec();
+            this._adminLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          case UserRole.RECIPIENT: {
+            const { recipientLastReadAt: timestamp, updatedAt } = await this.chatsRepo
+              .findOneAndUpdate(
+                { type: this._type, _id: this._id },
+                { recipientLastReadAt: lastread },
+                { new: true }
+              )
+              .exec();
+            this._recipientLastReadAt = timestamp;
+            this._updatedAt = updatedAt;
+            break;
+          }
+          default:
+            throw new InternalServerErrorException(
+              { message: 'Внутренняя ошибка сервера' },
+              {
+                cause: `В вызов ChatEntity.updateWatermark() для сущности типа "${this._type}" передана некорректная role: "${role}".`,
+              }
+            );
+        }
+        break;
+      }
+      default:
+        throw new InternalServerErrorException(
+          { message: 'Внутренняя ошибка сервера' },
+          {
+            cause: `В экземпляре ChatEntity некорректно установлен тип сущности "${this._type}".`,
+          }
+        );
+    }
     return this;
   }
 }
