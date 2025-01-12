@@ -68,4 +68,7 @@ export type wsOpenedChatsData<T extends string> = {
   [key in T]: Array<string>;
 };
 
-export type WsNewMessage = Omit<MessageInterface, '_id' | 'createdAt'>;
+export interface WsNewMessage
+  extends Omit<MessageInterface, '_id' | 'createdAt' | 'updatedAt' | 'timestamp'> {
+  timestamp: string;
+}
