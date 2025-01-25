@@ -7,7 +7,6 @@ import { Message } from '../../datalake/messages/schemas/messages.schema';
 import { ChatEntity } from './chat.entity';
 import {
   AnyChat,
-  ChatFields,
   ChatMetadata,
   ChatSearchRecord,
   CreateChatEntityDtoTypes,
@@ -112,22 +111,18 @@ export class ChatsFactory {
   }
 
   private async _makeEntity(dto: CreateChatEntityDtoTypes): Promise<ChatEntity> {
-    const doc = await (await this.chatsRepo.create(dto as CreateSystemChatEntityDtoType)).save();
+    const doc = (await (
+      await this.chatsRepo.create(dto as CreateChatEntityDtoTypes)
+    ).save()) as AnyChat;
     return new ChatEntity(ChatsFactory._prepareMeta(doc), doc, this.chatsRepo, this.messagesRepo);
   }
 
-  public async create(
-    type: ChatType.TASK_CHAT,
-    dto: CreateTaskChatEntityDtoType
-  ): Promise<ChatEntity>;
+  public async create(type: 'TASK_CHAT', dto: CreateTaskChatEntityDtoType): Promise<ChatEntity>;
+
+  public async create(type: 'SYSTEM_CHAT', dto: CreateSystemChatEntityDtoType): Promise<ChatEntity>;
 
   public async create(
-    type: ChatType.SYSTEM_CHAT,
-    dto: CreateSystemChatEntityDtoType
-  ): Promise<ChatEntity>;
-
-  public async create(
-    type: ChatType.CONFLICT_CHAT,
+    type: 'CONFLICT_CHAT',
     dto: [CreateConflictVolunteerChatEntityDtoType, CreateConflictRecipientChatEntityDtoType]
   ): Promise<[ChatEntity, ChatEntity]>;
 
@@ -181,8 +176,8 @@ export class ChatsFactory {
         }
         const [vDto, rDto] = dto;
         const [vDoc, rDoc] = await Promise.all([
-          await (await this.chatsRepo.create(vDto)).save(),
-          await (await this.chatsRepo.create(rDto)).save(),
+          (await (await this.chatsRepo.create(vDto)).save()) as ConflictChatWithVolunteer,
+          (await (await this.chatsRepo.create(rDto)).save()) as ConflictChatWithRecipient,
         ]);
         const volunteerChatMeta = ChatsFactory._prepareMeta(vDoc);
         const recipientChatMeta = ChatsFactory._prepareMeta(rDoc);
@@ -203,12 +198,10 @@ export class ChatsFactory {
 
   public async find(chatId: string | ObjectId): Promise<ChatEntity>;
 
-  public async find(dto: ChatSearchRecord): Promise<ChatEntity>;
-
   public async find(dto: ChatSearchRecord): Promise<Array<ChatEntity>>;
 
   public async find(
-    data: string | ObjectId | Record<ChatFields, unknown>
+    data: string | ObjectId | Record<string, unknown>
   ): Promise<ChatEntity | Array<ChatEntity>> {
     if (typeof data !== 'string' && !isObjectId(data) && !isChatSearchRecord(data)) {
       throw new InternalServerErrorException(
@@ -220,9 +213,11 @@ export class ChatsFactory {
     }
     let search: AnyChat | Array<AnyChat> | null;
     if (typeof data === 'string' || isObjectId(data)) {
-      search = await this.chatsRepo.findById(isObjectId(data) ? data.toString() : data).exec();
+      search = await this.chatsRepo
+        .findById<AnyChat>(isObjectId(data) ? data.toString() : data)
+        .exec();
     } else {
-      search = await this.chatsRepo.find(data).exec();
+      search = await this.chatsRepo.find<AnyChat>(data).exec();
     }
     return Array.isArray(search)
       ? search.map(

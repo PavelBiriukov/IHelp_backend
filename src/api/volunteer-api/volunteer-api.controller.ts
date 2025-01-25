@@ -9,6 +9,7 @@ import { User } from '../../datalake/users/schemas/user.schema';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { GetTasksSearchDto } from '../recipient-api/dto/get-tasks-query.dto';
 import { TaskReport, TaskStatus } from '../../common/types/task.types';
+import { ensureStringId } from '../../common/helpers/ensure-string-id';
 
 @UseGuards(JwtAuthGuard)
 @UseGuards(AccessControlGuard)
@@ -44,14 +45,24 @@ export class VolunteerApiController {
   @AccessControlList({ role: UserRole.VOLUNTEER, level: UserStatus.CONFIRMED })
   public async fulfillTask(@Param('id') id: string, @Req() req: Express.Request) {
     const { _id: userId } = req.user as AnyUserInterface;
-    return this.tasksService.reportTask(id, userId, UserRole.VOLUNTEER, TaskReport.FULFILLED);
+    return this.tasksService.reportTask(
+      id,
+      ensureStringId(userId),
+      UserRole.VOLUNTEER,
+      TaskReport.FULFILLED
+    );
   }
 
   @Put('/tasks/:id/reject')
   @AccessControlList({ role: UserRole.VOLUNTEER, level: UserStatus.CONFIRMED })
   public async rejectTask(@Param('id') id: string, @Req() req: Express.Request) {
     const { _id: userId } = req.user as AnyUserInterface;
-    return this.tasksService.reportTask(id, userId, UserRole.VOLUNTEER, TaskReport.REJECTED);
+    return this.tasksService.reportTask(
+      id,
+      ensureStringId(userId),
+      UserRole.VOLUNTEER,
+      TaskReport.REJECTED
+    );
   }
 
   @Get('/tasks/accepted')

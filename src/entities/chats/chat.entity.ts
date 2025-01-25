@@ -1,7 +1,7 @@
 /* eslint-disable no-empty-function */
 import { ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Model, type ObjectId } from 'mongoose';
+import mongoose, { Model, type ObjectId } from 'mongoose';
 import {
   AnyChat,
   AnyChatInterface,
@@ -23,6 +23,10 @@ import { ChatType, ChatTypes } from '../../common/types/system.types';
 import { ChatEntityInterface } from '../../common/types/entities.interfaces';
 import { Chat } from '../../datalake/chats/schemas/chat.schema';
 import { Message } from '../../datalake/messages/schemas/messages.schema';
+import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
+import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
+import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
+import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
 
 export class ChatEntity implements ChatEntityInterface {
   private _id: ObjectId | string | null = null;
@@ -55,7 +59,7 @@ export class ChatEntity implements ChatEntityInterface {
 
   private _messages: Array<MessageInterface> | null = null;
 
-  private _isActive: boolean = false;
+  private _isActive = false;
 
   private _doc: AnyChat | null = null;
 
@@ -72,51 +76,64 @@ export class ChatEntity implements ChatEntityInterface {
   }
 
   private _setMeta(meta: ChatMetadata) {
-    const { _id, type, createdAt, updatedAt, isActive } = meta;
+    const { _id, _type, _createdAt, _updatedAt, _isActive } = meta;
     this._id = _id;
-    this._type = type;
-    this._createdAt = createdAt;
-    this._updatedAt = updatedAt;
-    this._isActive = isActive;
-    switch (type) {
+    this._type = _type;
+    this._createdAt = _createdAt;
+    this._updatedAt = _updatedAt;
+    this._isActive = _isActive;
+    switch (this._type) {
       case ChatType.TASK_CHAT: {
-        const { taskId, volunteer, recipient, volunteerLastReadAt, recipientLastReadAt } = meta;
-        this._taskId = taskId;
-        this._volunteer = volunteer;
-        this._recipient = recipient;
-        this._volunteerLastReadAt = volunteerLastReadAt;
-        this._recipientLastReadAt = recipientLastReadAt;
+        const { _taskId, _volunteer, _recipient, _volunteerLastReadAt, _recipientLastReadAt } =
+          meta;
+        this._taskId = _taskId;
+        this._volunteer = _volunteer;
+        this._recipient = _recipient;
+        this._volunteerLastReadAt = _volunteerLastReadAt;
+        this._recipientLastReadAt = _recipientLastReadAt;
         break;
       }
       case ChatType.SYSTEM_CHAT: {
-        const { user, admin, userLastReadAt, adminLastReadAt } = meta;
-        this._user = user;
-        this._admin = admin;
-        this._userLastReadAt = userLastReadAt;
-        this._adminLastReadAt = adminLastReadAt;
+        const { _user, _admin, _userLastReadAt, _adminLastReadAt } = meta;
+        this._user = _user;
+        this._admin = _admin;
+        this._userLastReadAt = _userLastReadAt;
+        this._adminLastReadAt = _adminLastReadAt;
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER: {
-        const { taskId, volunteer, admin, opponentChat, volunteerLastReadAt, adminLastReadAt } =
-          meta;
-        this._taskId = taskId;
-        this._volunteer = volunteer;
-        this._admin = admin;
-        this._opponentChat = opponentChat;
-        this._volunteerLastReadAt = volunteerLastReadAt;
-        this._adminLastReadAt = adminLastReadAt;
+        const {
+          _taskId,
+          _volunteer,
+          _admin,
+          _opponentChat,
+          _volunteerLastReadAt,
+          _adminLastReadAt,
+        } = meta;
+        this._taskId = _taskId;
+        this._volunteer = _volunteer;
+        this._admin = _admin;
+        this._opponentChat = _opponentChat;
+        this._volunteerLastReadAt = _volunteerLastReadAt;
+        this._adminLastReadAt = _adminLastReadAt;
 
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_RECIPIENT: {
-        const { taskId, recipient, admin, opponentChat, recipientLastReadAt, adminLastReadAt } =
-          meta;
-        this._taskId = taskId;
-        this._recipient = recipient;
-        this._admin = admin;
-        this._opponentChat = opponentChat;
-        this._recipientLastReadAt = recipientLastReadAt;
-        this._adminLastReadAt = adminLastReadAt;
+        const {
+          _taskId,
+          _recipient,
+          _admin,
+          _opponentChat,
+          _recipientLastReadAt,
+          _adminLastReadAt,
+        } = meta;
+        this._taskId = _taskId;
+        this._recipient = _recipient;
+        this._admin = _admin;
+        this._opponentChat = _opponentChat;
+        this._recipientLastReadAt = _recipientLastReadAt;
+        this._adminLastReadAt = _adminLastReadAt;
         break;
       }
       default:
@@ -272,7 +289,7 @@ export class ChatEntity implements ChatEntityInterface {
         switch (role) {
           case UserRole.VOLUNTEER: {
             const { volunteerLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+              .findOneAndUpdate<TaskChat>(
                 { type: this._type, _id: this._id },
                 { volunteerLastReadAt: lastread },
                 { new: true }
@@ -284,7 +301,7 @@ export class ChatEntity implements ChatEntityInterface {
           }
           case UserRole.RECIPIENT: {
             const { recipientLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+              .findOneAndUpdate<TaskChat>(
                 { type: this._type, _id: this._id },
                 { recipientLastReadAt: lastread },
                 { new: true }
@@ -310,7 +327,7 @@ export class ChatEntity implements ChatEntityInterface {
           case UserRole.RECIPIENT:
           case UserRole.USER: {
             const { userLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+              .findOneAndUpdate<SystemChat>(
                 { type: this._type, _id: this._id },
                 { userLastReadAt: lastread },
                 { new: true }
@@ -322,7 +339,7 @@ export class ChatEntity implements ChatEntityInterface {
           }
           case UserRole.ADMIN: {
             const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+              .findOneAndUpdate<SystemChat>(
                 { type: this._type, _id: this._id },
                 { adminLastReadAt: lastread },
                 { new: true }
@@ -346,7 +363,7 @@ export class ChatEntity implements ChatEntityInterface {
         switch (role) {
           case UserRole.VOLUNTEER: {
             const { volunteerLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+              .findOneAndUpdate<ConflictChatWithVolunteer>(
                 { type: this._type, _id: this._id },
                 { volunteerLastReadAt: lastread }
               )
@@ -357,7 +374,7 @@ export class ChatEntity implements ChatEntityInterface {
           }
           case UserRole.ADMIN: {
             const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+              .findOneAndUpdate<ConflictChatWithVolunteer>(
                 { type: this._type, _id: this._id },
                 { adminLastReadAt: lastread },
                 { new: true }
@@ -381,7 +398,7 @@ export class ChatEntity implements ChatEntityInterface {
         switch (role) {
           case UserRole.ADMIN: {
             const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+              .findOneAndUpdate<ConflictChatWithRecipient>(
                 { type: this._type, _id: this._id },
                 { adminLastReadAt: lastread },
                 { new: true }
@@ -392,13 +409,14 @@ export class ChatEntity implements ChatEntityInterface {
             break;
           }
           case UserRole.RECIPIENT: {
-            const { recipientLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate(
+            const doc = await this.chatsRepo
+              .findOneAndUpdate<ConflictChatWithRecipient>(
                 { type: this._type, _id: this._id },
                 { recipientLastReadAt: lastread },
                 { new: true }
               )
               .exec();
+            const { recipientLastReadAt: timestamp, updatedAt } = doc;
             this._recipientLastReadAt = timestamp;
             this._updatedAt = updatedAt;
             break;

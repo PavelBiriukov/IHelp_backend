@@ -4,12 +4,14 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { AuthModule } from '../../core/auth/auth.module';
 import { WebsocketApiGateway } from './websocket-api.gateway';
 import { AddChatMessageHandler } from '../../core/add-chat-message.handler';
-import { ChatService } from '../../core/chat/chats.service';
+import { ChatService } from '../../core/chat/chat.service';
 import { QUERIES } from '../../common/queries';
+import { ChatEntityModule } from '../../entities/chats/chat.entity.module';
+import { ChatModule } from '../../core/chat/chat.module';
 
 @Module({
-  imports: [forwardRef(() => AuthModule), CqrsModule],
-  providers: [WebsocketApiGateway, AddChatMessageHandler, ChatService, ...QUERIES],
+  imports: [forwardRef(() => AuthModule), CqrsModule, ChatEntityModule],
+  providers: [WebsocketApiGateway, AddChatMessageHandler, ChatService, ...QUERIES, ChatModule],
   exports: [WebsocketApiGateway],
 })
 export class WebsocketApiModule {}

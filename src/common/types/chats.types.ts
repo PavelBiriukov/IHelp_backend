@@ -8,7 +8,7 @@ import {
 } from './user.types';
 import { ChatType, ChatTypes, MongooseIdAndTimestampsInterface } from './system.types';
 // eslint-disable-next-line import/no-cycle
-import { Chat } from '../../datalake/chats/schemas/chat.schema';
+// import { Chat } from '../../datalake/chats/schemas/chat.schema';
 import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
 import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
 import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
@@ -57,7 +57,7 @@ export interface SystemChatModelInterface {
   adminLastReadAt: Date | null;
 }
 
-export interface ConflictChatModelInterface {
+export interface ConflictChatModelInterface extends ChatModelInterface {
   taskId: ObjectId;
   opponentChat: ObjectId;
   admin: AdminInterface;
@@ -100,12 +100,7 @@ export type AnyChatInterface =
   | ConflictChatWithVolunteerInterface
   | ConflictChatWithRecipientInterface;
 
-export type AnyChat =
-  | Chat
-  | SystemChat
-  | TaskChat
-  | ConflictChatWithVolunteer
-  | ConflictChatWithRecipient;
+export type AnyChat = SystemChat | TaskChat | ConflictChatWithVolunteer | ConflictChatWithRecipient;
 
 export interface WatermarkInterface {
   watermark: string | null;
@@ -135,12 +130,16 @@ export interface RecipientConflictChatMetaInterface
     Pick<ConflictChatWithRecipientInterface, 'recipient'>,
     MongooseIdAndTimestampsInterface,
     WatermarkInterface {}
-
-export type VolunteerChatContent = Array<MessageInterface>;
-export type RecipientChatContent = Array<MessageInterface>;
-export type SystemChatContent = Array<MessageInterface>;
-export type TaskChatContent = Array<MessageInterface>;
-export type ConflictChatContentTuple = [VolunteerChatContent, RecipientChatContent];
+export type AnyChatMetaInterface =
+  | TaskChatMetaInterface
+  | SystemChatMetaInterface
+  | VolunteerConflictChatMetaInterface
+  | RecipientConflictChatMetaInterface;
+export type VolunteerChatContent = Array<MessageInterface> | null;
+export type RecipientChatContent = Array<MessageInterface> | null;
+export type SystemChatContent = Array<MessageInterface> | null;
+export type TaskChatContent = Array<MessageInterface> | null;
+export type ConflictChatContentTuple = [VolunteerChatContent | null, RecipientChatContent | null];
 
 export interface ConflictChatsTupleMetaInterface {
   moderator: AdminInterface | null;
@@ -166,6 +165,8 @@ export interface TaskChatInfo {
   meta: TaskChatMetaInterface;
   chats: TaskChatContent;
 }
+
+export type AnyChatInfo = TaskChatInfo | SystemChatInfo | ConflictChatInfo;
 
 export interface GetUserChatsResponseDtoInterface {
   task: Array<TaskChatInfo>;
@@ -237,4 +238,4 @@ export type ChatFields =
   | keyof ConflictChatWithVolunteerInterface
   | keyof ConflictChatWithRecipientInterface;
 
-export type ChatSearchRecord = Record<ChatFields, unknown>;
+export type ChatSearchRecord = Record<string, unknown>;

@@ -25,6 +25,7 @@ import { AnyUserChatsResponseDtoInterface, MessageInterface } from '../../common
 import { GetChatMessagesQuery } from '../../common/queries/get-chat-messages.query';
 import { AuthService } from '../../core/auth/auth.service';
 import { SocketAuthGuard } from '../../common/guards/socket-auth.guard';
+import { ensureStringId } from '../../common/helpers/ensure-string-id';
 
 interface TestEventMessageInterface {
   string: string;
@@ -87,7 +88,7 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   async sendTokenAndUpdatedUser(user: AnyUserInterface, token: string) {
-    const { userRoom, hasOnlineUser } = await this.getUserRoomData(user._id);
+    const { userRoom, hasOnlineUser } = await this.getUserRoomData(ensureStringId(user._id));
 
     if (hasOnlineUser) {
       userRoom.emit(wsMessageKind.REFRESH_TOKEN_COMMAND, {

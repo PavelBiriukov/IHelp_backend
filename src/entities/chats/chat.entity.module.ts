@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ModelDefinition, MongooseModule } from '@nestjs/mongoose';
-import { ChatEntity } from './chat.entity';
 import { Chat, ChatSchema } from '../../datalake/chats/schemas/chat.schema';
 import { TaskChat, TaskChatSchema } from '../../datalake/chats/schemas/task-chat.schema';
 import { SystemChat, SystemChatSchema } from '../../datalake/chats/schemas/system-chat.schema';
@@ -13,6 +12,7 @@ import {
   ConflictChatWithRecipientSchema,
 } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
 import { Message, MessagesSchema } from '../../datalake/messages/schemas/messages.schema';
+import { ChatsFactory } from './chat.entity.factory';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { Message, MessagesSchema } from '../../datalake/messages/schemas/message
       { name: Message.name, schema: MessagesSchema },
     ]),
   ],
-  providers: [ChatEntity],
-  exports: [ChatEntity],
+  providers: [ChatsFactory],
+  exports: [ChatsFactory],
 })
 export class ChatEntityModule {}

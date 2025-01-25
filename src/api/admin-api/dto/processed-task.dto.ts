@@ -3,14 +3,14 @@ import { CreatedCategoryDto } from './created-category.dto';
 import { UserDto } from './user.dto';
 import {
   ResolveStatus,
-  TaskInterface,
+  TaskModelInterface,
   TaskReport,
   TaskStatus,
 } from '../../../common/types/task.types';
 import { UserProfile } from '../../../common/types/user.types';
 import { LocationDto } from './location.dto';
 
-export class ProcessedTaskDto implements TaskInterface {
+export class ProcessedTaskDto implements TaskModelInterface {
   @ApiProperty({
     example: '66bcbaf831bd2d046260a91a',
     description: 'Идентификатор задачи',

@@ -35,7 +35,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AccessControlList } from '../../common/decorators/access-control-list.decorator';
 import { AnyUserInterface, UserRole } from '../../common/types/user.types';
 import { AccessRights } from '../../common/types/access-rights.types';
-import { ResolveResult, TaskInterface, TaskStatus } from '../../common/types/task.types';
+import { ResolveResult, TaskModelInterface, TaskStatus } from '../../common/types/task.types';
 import { UpdateContactsRequestDto } from '../../common/dto/contacts.dto';
 import { NewAdminDto } from './dto/new-admin.dto';
 import { CreatedAdminDto } from './dto/created-admin.dto';
@@ -566,9 +566,9 @@ export class AdminApiController {
     type: BadRequestErrorResponseDto,
   })
   @AccessControlList({ role: UserRole.ADMIN })
-  async getTasks(@Param('id') _id: string): Promise<TaskInterface[]> {
+  async getTasks(@Param('id') _id: string): Promise<TaskModelInterface[]> {
     const user = (await this.usersService.getProfile(_id)) as unknown as AnyUserInterface;
-    const results: TaskInterface[][] = await Promise.all(
+    const results: TaskModelInterface[][] = await Promise.all(
       Object.values(TaskStatus).map((status) => this.tasksService.getOwnTasks(user, status))
     );
     return Promise.resolve(results.flat());

@@ -1,7 +1,5 @@
-import { ObjectId } from "mongoose";
+import { ObjectId } from 'mongoose';
 
 export class SearchUserQuery {
-  constructor(
-    public readonly userId: ObjectId
-  ) {}
+  constructor(public readonly userId: ObjectId) {}
 }

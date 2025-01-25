@@ -1,7 +1,7 @@
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
-import { ChatEntityModule } from '../../entities/chats/chat.entity.module';
 import { ChatService } from './chat.service';
+import { ChatEntityModule } from '../../entities/chats/chat.entity.module';
 
 @Module({
   imports: [CqrsModule, ChatEntityModule],

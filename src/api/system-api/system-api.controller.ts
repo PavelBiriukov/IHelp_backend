@@ -13,6 +13,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ContactsService } from '../../core/contacts/contacts.service';
 import { PolicyService } from '../../core/policy/policy.service';
 import { UpdateUserProfileCommand } from '../../common/commands/update-user-profile.command';
+import { ensureStringId } from '../../common/helpers/ensure-string-id';
 
 @Controller('system')
 export class SystemApiController {
@@ -65,7 +66,7 @@ export class SystemApiController {
   @UseGuards(JwtAuthGuard)
   public async getProfile(@Req() req: Express.Request) {
     const { _id } = req.user as AnyUserInterface;
-    return this.userService.getProfile(_id);
+    return this.userService.getProfile(typeof _id === 'string' ? _id : _id.toString());
   }
 
   @Patch('profile')
@@ -76,7 +77,7 @@ export class SystemApiController {
     return this.commandBus.execute<
       UpdateUserProfileCommand,
       { user: AnyUserInterface; token: string }
-    >(new UpdateUserProfileCommand(_id, dto));
+    >(new UpdateUserProfileCommand(ensureStringId(_id), dto));
   }
 
   @Get('contacts')

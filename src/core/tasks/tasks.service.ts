@@ -17,17 +17,21 @@ import { Task } from '../../datalake/task/schemas/task.schema';
 import {
   ResolveResult,
   ResolveStatus,
-  TaskInterface,
+  TaskModelInterface,
   TaskReport,
   TaskStatus,
   TaskClosingProps,
   FulfilledTaskClosingProps,
   TaskClosingConditionalProps,
+  TaskInterface,
 } from '../../common/types/task.types';
 import { AnyUserInterface, UserRole } from '../../common/types/user.types';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { User } from '../../datalake/users/schemas/user.schema';
-import { CreateTaskChatCommand } from '../../common/commands/create-chat.command';
+import {
+  CreateTaskChatCommand,
+  CreateTaskChatCommandType,
+} from '../../common/commands/create-chat.command';
 
 @Injectable()
 export class TasksService {
@@ -183,7 +187,7 @@ export class TasksService {
     user?: AnyUserInterface
   ) {
     const { location: center, distance, start, end /* , categoryId */ } = dto;
-    const query: FilterQuery<TaskInterface> = {
+    const query: FilterQuery<TaskModelInterface> = {
       status: taskStatus,
       location: {
         $near: {
@@ -291,7 +295,8 @@ export class TasksService {
       { status: TaskStatus.ACCEPTED, volunteer: { name, phone, avatar, address, _id, vkId, role } },
       { new: true }
     );
-    await this.commandBus.execute(new CreateTaskChatCommand({ taskId, updatedTask }));
+    const data: CreateTaskChatCommandType = { updatedTask: updatedTask as TaskInterface };
+    await this.commandBus.execute(new CreateTaskChatCommand(data));
     return updatedTask;
   }
 
@@ -437,8 +442,8 @@ export class TasksService {
         cause: `Обновление данных задачи не выполнено или выполнено с ошибкой: ${taskUpdateResult.reason}`,
       });
     }
-
-    return taskUpdateResult.value;
+    const res = taskUpdateResult as PromiseFulfilledResult<Task>;
+    return res.value;
   }
 
   private async closeTaskAsRejected({
