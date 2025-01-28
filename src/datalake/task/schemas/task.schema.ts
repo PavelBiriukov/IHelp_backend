@@ -28,7 +28,7 @@ export class Task
   implements TaskInterface
 {
   @Prop({
-    required: true,
+    required: false,
     type: SchemaTypes.ObjectId,
   })
   _id: ObjectId;
@@ -92,13 +92,13 @@ export class Task
   description: string;
 
   @Prop({
-    required: true,
+    required: false,
     type: SchemaTypes.Date,
   })
   createdAt: Date;
 
   @Prop({
-    required: true,
+    required: false,
     type: SchemaTypes.Date,
   })
   updatedAt: Date;
