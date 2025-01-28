@@ -28,7 +28,7 @@ export class Task
   implements TaskInterface
 {
   @Prop({
-    required: false,
+    auto: true,
     type: SchemaTypes.ObjectId,
   })
   _id: ObjectId;
