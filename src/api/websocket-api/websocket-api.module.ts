@@ -8,9 +8,15 @@ import { ChatService } from '../../core/chat/chat.service';
 import { QUERIES } from '../../common/queries';
 import { ChatEntityModule } from '../../entities/chats/chat.entity.module';
 import { ChatModule } from '../../core/chat/chat.module';
+import { UsersModule } from '../../core/users/users.module';
 
 @Module({
-  imports: [forwardRef(() => AuthModule), CqrsModule, ChatEntityModule],
+  imports: [
+    forwardRef(() => AuthModule),
+    CqrsModule,
+    ChatEntityModule,
+    forwardRef(() => UsersModule),
+  ],
   providers: [WebsocketApiGateway, AddChatMessageHandler, ChatService, ...QUERIES, ChatModule],
   exports: [WebsocketApiGateway],
 })
