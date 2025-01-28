@@ -1,12 +1,13 @@
 /* eslint-disable no-empty-function */
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId } from 'mongoose';
+import { HydratedDocument, Model, ObjectId } from 'mongoose';
 import { Chat } from '../../datalake/chats/schemas/chat.schema';
 import { Message } from '../../datalake/messages/schemas/messages.schema';
 import { ChatEntity } from './chat.entity';
 import {
   AnyChat,
+  AnyChatDoc,
   ChatMetadata,
   ChatSearchRecord,
   CreateChatEntityDtoTypes,
@@ -37,8 +38,8 @@ export class ChatsFactory {
     @InjectModel(Message.name) private readonly messagesRepo: Model<Message>
   ) {}
 
-  private static _prepareMeta(chat: AnyChat): ChatMetadata {
-    const { _id, type, createdAt, updatedAt, isActive } = chat as Chat;
+  private static _prepareMeta(chat: AnyChat & Chat): ChatMetadata {
+    const { _id, type, createdAt, updatedAt, isActive } = chat;
     const meta: ChatMetadata = {
       _adminLastReadAt: null,
       _createdAt: createdAt,
@@ -112,8 +113,12 @@ export class ChatsFactory {
 
   private async _makeEntity(dto: CreateChatEntityDtoTypes): Promise<ChatEntity> {
     const doc = (await (
-      await this.chatsRepo.create(dto as CreateChatEntityDtoTypes)
-    ).save()) as AnyChat;
+      (await this.chatsRepo.create(dto)) as HydratedDocument<
+        AnyChat & Chat,
+        unknown,
+        Record<string, never>
+      >
+    ).save()) as AnyChat & Chat;
     return new ChatEntity(ChatsFactory._prepareMeta(doc), doc, this.chatsRepo, this.messagesRepo);
   }
 
@@ -176,8 +181,20 @@ export class ChatsFactory {
         }
         const [vDto, rDto] = dto;
         const [vDoc, rDoc] = await Promise.all([
-          (await (await this.chatsRepo.create(vDto)).save()) as ConflictChatWithVolunteer,
-          (await (await this.chatsRepo.create(rDto)).save()) as ConflictChatWithRecipient,
+          (await (
+            (await this.chatsRepo.create(vDto)) as HydratedDocument<
+              ConflictChatWithVolunteer & Chat,
+              unknown,
+              Record<string, never>
+            >
+          ).save()) as ConflictChatWithVolunteer & Chat,
+          (await (
+            (await this.chatsRepo.create(rDto)) as HydratedDocument<
+              ConflictChatWithRecipient & Chat,
+              unknown,
+              Record<string, never>
+            >
+          ).save()) as ConflictChatWithRecipient & Chat,
         ]);
         const volunteerChatMeta = ChatsFactory._prepareMeta(vDoc);
         const recipientChatMeta = ChatsFactory._prepareMeta(rDoc);
@@ -211,13 +228,13 @@ export class ChatsFactory {
         }
       );
     }
-    let search: AnyChat | Array<AnyChat> | null;
+    let search: AnyChatDoc | Array<AnyChatDoc> | null;
     if (typeof data === 'string' || isObjectId(data)) {
       search = await this.chatsRepo
-        .findById<AnyChat>(isObjectId(data) ? data.toString() : data)
+        .findById<AnyChatDoc>(isObjectId(data) ? data.toString() : data)
         .exec();
     } else {
-      search = await this.chatsRepo.find<AnyChat>(data).exec();
+      search = await this.chatsRepo.find<AnyChatDoc>(data).exec();
     }
     return Array.isArray(search)
       ? search.map(

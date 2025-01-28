@@ -289,7 +289,7 @@ export class ChatEntity implements ChatEntityInterface {
         switch (role) {
           case UserRole.VOLUNTEER: {
             const { volunteerLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate<TaskChat>(
+              .findOneAndUpdate<TaskChat & Chat>(
                 { type: this._type, _id: this._id },
                 { volunteerLastReadAt: lastread },
                 { new: true }
@@ -301,7 +301,7 @@ export class ChatEntity implements ChatEntityInterface {
           }
           case UserRole.RECIPIENT: {
             const { recipientLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate<TaskChat>(
+              .findOneAndUpdate<TaskChat & Chat>(
                 { type: this._type, _id: this._id },
                 { recipientLastReadAt: lastread },
                 { new: true }
@@ -327,7 +327,7 @@ export class ChatEntity implements ChatEntityInterface {
           case UserRole.RECIPIENT:
           case UserRole.USER: {
             const { userLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate<SystemChat>(
+              .findOneAndUpdate<SystemChat & Chat>(
                 { type: this._type, _id: this._id },
                 { userLastReadAt: lastread },
                 { new: true }
@@ -339,7 +339,7 @@ export class ChatEntity implements ChatEntityInterface {
           }
           case UserRole.ADMIN: {
             const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate<SystemChat>(
+              .findOneAndUpdate<SystemChat & Chat>(
                 { type: this._type, _id: this._id },
                 { adminLastReadAt: lastread },
                 { new: true }
@@ -363,7 +363,7 @@ export class ChatEntity implements ChatEntityInterface {
         switch (role) {
           case UserRole.VOLUNTEER: {
             const { volunteerLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate<ConflictChatWithVolunteer>(
+              .findOneAndUpdate<ConflictChatWithVolunteer & Chat>(
                 { type: this._type, _id: this._id },
                 { volunteerLastReadAt: lastread }
               )
@@ -374,7 +374,7 @@ export class ChatEntity implements ChatEntityInterface {
           }
           case UserRole.ADMIN: {
             const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate<ConflictChatWithVolunteer>(
+              .findOneAndUpdate<ConflictChatWithVolunteer & Chat>(
                 { type: this._type, _id: this._id },
                 { adminLastReadAt: lastread },
                 { new: true }
@@ -398,7 +398,7 @@ export class ChatEntity implements ChatEntityInterface {
         switch (role) {
           case UserRole.ADMIN: {
             const { adminLastReadAt: timestamp, updatedAt } = await this.chatsRepo
-              .findOneAndUpdate<ConflictChatWithRecipient>(
+              .findOneAndUpdate<ConflictChatWithRecipient & Chat>(
                 { type: this._type, _id: this._id },
                 { adminLastReadAt: lastread },
                 { new: true }
@@ -410,7 +410,7 @@ export class ChatEntity implements ChatEntityInterface {
           }
           case UserRole.RECIPIENT: {
             const doc = await this.chatsRepo
-              .findOneAndUpdate<ConflictChatWithRecipient>(
+              .findOneAndUpdate<ConflictChatWithRecipient & Chat>(
                 { type: this._type, _id: this._id },
                 { recipientLastReadAt: lastread },
                 { new: true }

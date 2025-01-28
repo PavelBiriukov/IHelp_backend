@@ -7,12 +7,16 @@ import {
   VolunteerInterface,
 } from './user.types';
 import { ChatType, ChatTypes, MongooseIdAndTimestampsInterface } from './system.types';
-// eslint-disable-next-line import/no-cycle
-// import { Chat } from '../../datalake/chats/schemas/chat.schema';
-import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
-import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
-import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
-import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
+import { SystemChat, SystemChatDoc } from '../../datalake/chats/schemas/system-chat.schema';
+import { TaskChat, TaskChatDoc } from '../../datalake/chats/schemas/task-chat.schema';
+import {
+  ConflictChatWithVolunteer,
+  ConflictChatWithVolunteerDoc,
+} from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
+import {
+  ConflictChatWithRecipient,
+  ConflictChatWithRecipientDoc,
+} from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
 
 export interface MessageModelInterface {
   body: string;
@@ -57,7 +61,7 @@ export interface SystemChatModelInterface {
   adminLastReadAt: Date | null;
 }
 
-export interface ConflictChatModelInterface extends ChatModelInterface {
+export interface ConflictChatModelInterface {
   taskId: ObjectId;
   opponentChat: ObjectId;
   admin: AdminInterface;
@@ -239,3 +243,9 @@ export type ChatFields =
   | keyof ConflictChatWithRecipientInterface;
 
 export type ChatSearchRecord = Record<string, unknown>;
+
+export type AnyChatDoc =
+  | TaskChatDoc
+  | SystemChatDoc
+  | ConflictChatWithVolunteerDoc
+  | ConflictChatWithRecipientDoc;

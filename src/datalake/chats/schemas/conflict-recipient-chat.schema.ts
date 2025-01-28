@@ -4,11 +4,8 @@ import { type ObjectId, Document, SchemaTypes } from 'mongoose';
 import { ConflictChatWithRecipientModelInterface } from '../../../common/types/chats.types';
 import { AdminInterface, RecipientInterface } from '../../../common/types/user.types';
 import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-definition';
-import {
-  ChatType,
-  ChatTypes,
-  MongooseIdAndTimestampsInterface,
-} from '../../../common/types/system.types';
+import { MongooseIdAndTimestampsInterface } from '../../../common/types/system.types';
+import { Chat } from './chat.schema';
 
 @Schema({
   timestamps: true,
@@ -66,34 +63,9 @@ export class ConflictChatWithRecipient
     type: SchemaTypes.Date,
   })
   adminLastReadAt: Date | null;
-
-  @Prop({
-    required: false,
-    default: true,
-    type: SchemaTypes.Boolean,
-  })
-  isActive: boolean;
-
-  @Prop({
-    required: true,
-    enum: Object.values<string>(ChatType),
-  })
-  type: ChatTypes;
-
-  @Prop({
-    required: false,
-    default: null,
-    type: SchemaTypes.Date,
-  })
-  createdAt: string | Date;
-
-  @Prop({
-    required: false,
-    default: null,
-    type: SchemaTypes.Date,
-  })
-  updatedAt: string | Date;
 }
 
 export const ConflictChatWithRecipientSchema =
   SchemaFactory.createForClass(ConflictChatWithRecipient);
+
+export type ConflictChatWithRecipientDoc = ConflictChatWithRecipient & Chat;

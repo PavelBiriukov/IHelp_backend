@@ -4,7 +4,7 @@ import { type ObjectId, Document, SchemaTypes } from 'mongoose';
 import { ConflictChatWithVolunteerModelInterface } from '../../../common/types/chats.types';
 import { AdminInterface, VolunteerInterface } from '../../../common/types/user.types';
 import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-definition';
-import { ChatType, ChatTypes } from '../../../common/types/system.types';
+import { Chat } from './chat.schema';
 
 @Schema({
   timestamps: true,
@@ -58,34 +58,9 @@ export class ConflictChatWithVolunteer
     type: SchemaTypes.Date,
   })
   adminLastReadAt: Date | null;
-
-  @Prop({
-    required: false,
-    default: true,
-    type: SchemaTypes.Boolean,
-  })
-  isActive: boolean;
-
-  @Prop({
-    required: true,
-    enum: Object.values<string>(ChatType),
-  })
-  type: ChatTypes;
-
-  @Prop({
-    required: false,
-    default: null,
-    type: SchemaTypes.Date,
-  })
-  createdAt: string | Date;
-
-  @Prop({
-    required: false,
-    default: null,
-    type: SchemaTypes.Date,
-  })
-  updatedAt: string | Date;
 }
 
 export const ConflictChatWithVolunteerSchema =
   SchemaFactory.createForClass(ConflictChatWithVolunteer);
+
+export type ConflictChatWithVolunteerDoc = ConflictChatWithVolunteer & Chat;

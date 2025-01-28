@@ -8,7 +8,7 @@ import {
   AdminInterface,
 } from '../../../common/types/user.types';
 import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-definition';
-import { ChatType, ChatTypes } from '../../../common/types/system.types';
+import { Chat } from './chat.schema';
 
 @Schema({
   timestamps: true,
@@ -45,33 +45,8 @@ export class SystemChat extends Document implements SystemChatModelInterface {
     type: raw(rawUserProfile),
   })
   admin: AdminInterface | null;
-
-  @Prop({
-    required: false,
-    default: true,
-    type: SchemaTypes.Boolean,
-  })
-  isActive: boolean;
-
-  @Prop({
-    required: true,
-    enum: Object.values<string>(ChatType),
-  })
-  type: ChatTypes;
-
-  @Prop({
-    required: false,
-    default: null,
-    type: SchemaTypes.Date,
-  })
-  createdAt: string | Date;
-
-  @Prop({
-    required: false,
-    default: null,
-    type: SchemaTypes.Date,
-  })
-  updatedAt: string | Date;
 }
 
 export const SystemChatSchema = SchemaFactory.createForClass(SystemChat);
+
+export type SystemChatDoc = SystemChat & Chat;
