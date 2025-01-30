@@ -241,7 +241,7 @@ export class ChatEntity implements ChatEntityInterface {
   }
 
   public async postMessage(dto: VirginMessageInterface): Promise<ChatEntity> {
-    if (dto.chatId !== this._id) {
+    if (dto.chatId !== this._id.toString()) {
       throw new ForbiddenException('Нельзя отправлять сообщение не в соответствующий чат.');
     }
     const msg = await this.messagesRepo.create({ ...dto, timestamp: Date.now() });
