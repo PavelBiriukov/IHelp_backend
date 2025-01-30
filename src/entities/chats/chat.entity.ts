@@ -75,13 +75,14 @@ export class ChatEntity implements ChatEntityInterface {
     this._setMeta(meta);
   }
 
-  private _setMeta(meta: ChatMetadata) {
+  private async _setMeta(meta: ChatMetadata): Promise<void> {
     const { _id, _type, _createdAt, _updatedAt, _isActive } = meta;
     this._id = _id;
     this._type = _type;
     this._createdAt = _createdAt;
     this._updatedAt = _updatedAt;
     this._isActive = _isActive;
+    this._messages = await this.messagesRepo.find<MessageInterface>({ chatId: this._id }).exec();
     switch (this._type) {
       case ChatType.TASK_CHAT: {
         const { _taskId, _volunteer, _recipient, _volunteerLastReadAt, _recipientLastReadAt } =
@@ -116,7 +117,6 @@ export class ChatEntity implements ChatEntityInterface {
         this._opponentChat = _opponentChat;
         this._volunteerLastReadAt = _volunteerLastReadAt;
         this._adminLastReadAt = _adminLastReadAt;
-
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_RECIPIENT: {
