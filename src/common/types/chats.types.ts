@@ -23,7 +23,7 @@ export interface MessageModelInterface {
   attaches: string[];
   author: AnyUserInterface;
   chatId: ObjectId | string | null;
-  timestamp: Date;
+  timestamp: Date | string | null;
 }
 
 export interface MessageInterface extends MessageModelInterface, MongooseIdAndTimestampsInterface {}
