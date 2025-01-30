@@ -414,18 +414,18 @@ export class ChatService {
     role: UserRole
   ): Promise<Array<T>> {
     return chats.map((chat) => {
-      const chats = chat.messages;
+      const msgs = chat.messages;
       switch (chat.meta.type) {
         case ChatType.TASK_CHAT: {
           return {
             meta: this._getTaskChatMeta(chat, role),
-            chats,
+            chats: msgs,
           } as T;
         }
         case ChatType.SYSTEM_CHAT: {
           return {
             meta: this._getSystemChatMeta(chat, role),
-            chats,
+            chats: msgs,
           } as T;
         }
         case ChatType.CONFLICT_CHAT_WITH_RECIPIENT:
