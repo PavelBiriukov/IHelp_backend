@@ -251,7 +251,9 @@ export class ChatsFactory {
       search = await this.chatsRepo.find<AnyChatDoc>(data).exec();
     }
     if (Array.isArray(search)) {
-      const entityPromises = search.map(this._createAndInitEntity.bind(this));
+      const entityPromises = search.map(this._createAndInitEntity.bind(this)) as Array<
+        Promise<ChatEntity>
+      >;
       return Promise.all(entityPromises);
     }
     return this._createAndInitEntity(search);
