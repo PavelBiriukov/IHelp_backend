@@ -217,6 +217,16 @@ export class ChatsFactory {
     }
   }
 
+  private async _createAndInitEntity(doc: AnyChatDoc): Promise<ChatEntity> {
+    const entity = new ChatEntity(
+      ChatsFactory._prepareMeta(doc),
+      doc,
+      this.chatsRepo,
+      this.messagesRepo
+    );
+    return entity.init();
+  }
+
   public async find(chatId: string | ObjectId): Promise<ChatEntity>;
 
   public async find(dto: ChatSearchRecord): Promise<Array<ChatEntity>>;
@@ -240,16 +250,10 @@ export class ChatsFactory {
     } else {
       search = await this.chatsRepo.find<AnyChatDoc>(data).exec();
     }
-    return Array.isArray(search)
-      ? search.map(
-          (doc) =>
-            new ChatEntity(ChatsFactory._prepareMeta(doc), doc, this.chatsRepo, this.messagesRepo)
-        )
-      : new ChatEntity(
-          ChatsFactory._prepareMeta(search),
-          search,
-          this.chatsRepo,
-          this.messagesRepo
-        );
+    if (Array.isArray(search)) {
+      const entityPromises = search.map(this._createAndInitEntity);
+      return Promise.all(entityPromises);
+    }
+    return this._createAndInitEntity(search);
   }
 }

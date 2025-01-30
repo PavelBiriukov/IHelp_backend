@@ -72,19 +72,16 @@ export class ChatEntity implements ChatEntityInterface {
     private readonly messagesRepo: Model<Message>
   ) {
     this._doc = doc;
-    this._setMeta(meta).then(() => {
-      console.log('Entity created.');
-    });
+    this._setMeta(meta);
   }
 
-  private async _setMeta(meta: ChatMetadata): Promise<void> {
+  private _setMeta(meta: ChatMetadata): void {
     const { _id, _type, _createdAt, _updatedAt, _isActive } = meta;
     this._id = _id;
     this._type = _type;
     this._createdAt = _createdAt;
     this._updatedAt = _updatedAt;
     this._isActive = _isActive;
-    this._messages = await this.messagesRepo.find<MessageInterface>({ chatId: this._id }).exec();
     switch (this._type) {
       case ChatType.TASK_CHAT: {
         const { _taskId, _volunteer, _recipient, _volunteerLastReadAt, _recipientLastReadAt } =
@@ -236,6 +233,11 @@ export class ChatEntity implements ChatEntityInterface {
 
   get messages(): Array<MessageInterface> {
     return this._messages;
+  }
+
+  public async init(): Promise<ChatEntity> {
+    this._messages = await this.messagesRepo.find<MessageInterface>({ chatId: this._id }).exec();
+    return this;
   }
 
   public async postMessage(dto: VirginMessageInterface): Promise<ChatEntity> {
