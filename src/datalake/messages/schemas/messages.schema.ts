@@ -14,9 +14,6 @@ import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-de
 })
 export class Message extends Document implements MessageModelInterface {
   @Prop({ required: true, type: SchemaTypes.String })
-  title: string;
-
-  @Prop({ required: true, type: SchemaTypes.String })
   body: string;
 
   @Prop({ required: false, default: [], type: [SchemaTypes.String] })
