@@ -72,7 +72,9 @@ export class ChatEntity implements ChatEntityInterface {
     private readonly messagesRepo: Model<Message>
   ) {
     this._doc = doc;
-    this._setMeta(meta);
+    this._setMeta(meta).then(() => {
+      console.log('Entity created.');
+    });
   }
 
   private async _setMeta(meta: ChatMetadata): Promise<void> {
