@@ -15,7 +15,7 @@ import { ChatType, ChatTypes } from '../../../common/types/system.types';
 })
 export class Chat extends Document implements ChatModelInterface {
   @Prop({
-    required: true,
+    auto: true,
     type: SchemaTypes.ObjectId,
   })
   _id: ObjectId;
@@ -28,13 +28,15 @@ export class Chat extends Document implements ChatModelInterface {
   type: ChatTypes;
 
   @Prop({
-    required: true,
+    required: false,
+    auto: true,
     type: SchemaTypes.Date,
   })
   createdAt: Date;
 
   @Prop({
     required: true,
+    auto: true,
     type: SchemaTypes.Date,
   })
   updatedAt: Date;

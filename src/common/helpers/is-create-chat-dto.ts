@@ -46,7 +46,7 @@ export function isCreateConflictChatTuple(
   return isCreateVolunteerConflictChatDto(vDto) && isCreateRecipientConflictChatDto(rDto);
 }
 
-export function isCreateTaskChatDto(value: unknown): value is CreateTaskChatEntityDtoType {
+export function isCreateTaskChatDto(value: any): value is CreateTaskChatEntityDtoType {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -54,7 +54,7 @@ export function isCreateTaskChatDto(value: unknown): value is CreateTaskChatEnti
     Object.keys(value).includes('volunteer') &&
     Object.keys(value).includes('recipient') &&
     Object.keys(value).includes('taskId') &&
-    Object.keys(value).includes(ChatType.TASK_CHAT)
+    Object.values(value).includes(ChatType.TASK_CHAT)
   );
 }
 

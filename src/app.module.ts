@@ -27,6 +27,7 @@ import { SystemApiModule } from './api/system-api/system-api.module';
 import { LoggerMiddleware } from './common/middleware';
 import { WebsocketApiModule } from './api/websocket-api/websocket-api.module';
 import { ChatEntityModule } from './entities/chats/chat.entity.module';
+import { ChatModule } from './core/chat/chat.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ChatEntityModule } from './entities/chats/chat.entity.module';
     SystemApiModule,
     WebsocketApiModule,
     ChatEntityModule,
+    ChatModule,
   ],
   providers: [
     {

@@ -66,7 +66,8 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   afterInit(server: Server) {
     // eslint-disable-next-line no-console
-    console.log('SystemApi socket server was initialized');
+    console.log('SystemApi socket server was initialized.\nOprions:');
+    console.dir(server._opts);
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {

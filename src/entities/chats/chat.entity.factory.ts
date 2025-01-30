@@ -113,7 +113,7 @@ export class ChatsFactory {
 
   private async _makeEntity(dto: CreateChatEntityDtoTypes): Promise<ChatEntity> {
     const doc = (await (
-      (await this.chatsRepo.create(dto)) as HydratedDocument<
+      (await this.chatsRepo.create({ ...dto, isActive: true })) as HydratedDocument<
         AnyChat & Chat,
         unknown,
         Record<string, never>
@@ -122,12 +122,12 @@ export class ChatsFactory {
     return new ChatEntity(ChatsFactory._prepareMeta(doc), doc, this.chatsRepo, this.messagesRepo);
   }
 
-  public async create(type: 'TASK_CHAT', dto: CreateTaskChatEntityDtoType): Promise<ChatEntity>;
+  public async create(type: 'TaskChat', dto: CreateTaskChatEntityDtoType): Promise<ChatEntity>;
 
-  public async create(type: 'SYSTEM_CHAT', dto: CreateSystemChatEntityDtoType): Promise<ChatEntity>;
+  public async create(type: 'SystemChat', dto: CreateSystemChatEntityDtoType): Promise<ChatEntity>;
 
   public async create(
-    type: 'CONFLICT_CHAT',
+    type: 'SystemChat',
     dto: [CreateConflictVolunteerChatEntityDtoType, CreateConflictRecipientChatEntityDtoType]
   ): Promise<[ChatEntity, ChatEntity]>;
 
@@ -135,7 +135,10 @@ export class ChatsFactory {
     type: ChatTypes,
     dto: CreateChatEntityDtoTypes | CreateConflictChatsTupleDtoType
   ): Promise<ChatEntity | [ChatEntity, ChatEntity]> {
+    console.log(`ChatsFactory.create() called.\nArguments:\ntype = '${type}',\ndto:`);
+    console.dir(dto);
     if (!isChatType(type)) {
+      console.log(`isChatType(${type}) === false :-(`);
       throw new InternalServerErrorException(
         { message: 'Внутренняя ошибка сервера' },
         { cause: `В метод ChatsFactory.create() передан неверный аргумент type "${type}".` }
@@ -150,6 +153,7 @@ export class ChatsFactory {
     switch (type) {
       case ChatType.TASK_CHAT: {
         if (!isCreateTaskChatDto(dto)) {
+          console.log(`isCreateTaskChatDto(dto) === false :-(`);
           throw new InternalServerErrorException(
             { message: 'Внутренняя ошибка сервера' },
             {

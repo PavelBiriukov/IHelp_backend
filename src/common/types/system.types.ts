@@ -44,11 +44,16 @@ export interface MongooseIdAndTimestampsInterface {
 }
 
 export const ChatType = {
-  TASK_CHAT: 'TASK_CHAT',
-  SYSTEM_CHAT: 'SYSTEM_CHAT',
-  CONFLICT_CHAT: 'CONFLICT_CHAT',
-  CONFLICT_CHAT_WITH_VOLUNTEER: 'CONFLICT_CHAT_WITH_VOLUNTEER',
-  CONFLICT_CHAT_WITH_RECIPIENT: 'CONFLICT_CHAT_WITH_RECIPIENT',
+  TASK_CHAT: 'TaskChat',
+  SYSTEM_CHAT: 'SystemChat',
+  CONFLICT_CHAT: 'ConflictChat',
+  CONFLICT_CHAT_WITH_VOLUNTEER: 'ConflictChatWithVolunteer',
+  CONFLICT_CHAT_WITH_RECIPIENT: 'ConflictChatWithRecipient',
 } as const;
 // export const ChatTypes = ChatType;
-export type ChatTypes = keyof typeof ChatType;
+export type ChatTypes =
+  | 'TaskChat'
+  | 'SystemChat'
+  | 'ConflictChat'
+  | 'ConflictChatWithVolunteer'
+  | 'ConflictChatWithRecipient';
