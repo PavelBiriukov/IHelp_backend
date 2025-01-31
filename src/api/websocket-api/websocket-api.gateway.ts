@@ -11,7 +11,6 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { IsArray, IsNotEmpty, IsObject, IsString } from 'class-validator';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
 import { AddChatMessageCommand } from '../../common/commands/add-chat-message.command';
@@ -27,6 +26,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { SocketAuthGuard } from '../../common/guards/socket-auth.guard';
 import { ensureStringId } from '../../common/helpers/ensure-string-id';
 
+/*
 interface TestEventMessageInterface {
   string: string;
   object: object;
@@ -45,6 +45,7 @@ class TestEventMessageDto implements TestEventMessageInterface {
   @IsNotEmpty()
   array: Array<string>;
 }
+*/
 
 @UseGuards(SocketAuthGuard)
 @UsePipes(SocketValidationPipe)
@@ -67,7 +68,6 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   afterInit(server: Server) {
     // eslint-disable-next-line no-console
     console.log('SystemApi socket server was initialized.\nOprions:');
-    console.dir(server._opts);
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {
@@ -79,11 +79,11 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
       return;
     }
 
-    client.join(user._id);
+    client.join(ensureStringId(user._id));
 
     const userChatsMeta = await this.queryBus.execute(new GetUserChatsMetaQuery(user._id));
 
-    this.server.in(user._id).emit(wsMessageKind.INITIAL_CHATS_META_COMMAND, {
+    this.server.in(ensureStringId(user._id)).emit(wsMessageKind.INITIAL_CHATS_META_COMMAND, {
       data: userChatsMeta,
     });
   }
@@ -162,7 +162,7 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   sendNewMessage(savedMessage: MessageInterface) {
-    this.server.in(savedMessage.chatId as string).emit(wsMessageKind.NEW_MESSAGE_COMMAND, {
+    this.server.in(ensureStringId(savedMessage.chatId)).emit(wsMessageKind.NEW_MESSAGE_COMMAND, {
       data: savedMessage,
     });
   }
@@ -178,7 +178,7 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
 
     const { user = null } = client.data;
 
-    const { userRoom } = await this.getUserRoomData(user._id);
+    const { userRoom } = await this.getUserRoomData(ensureStringId(user._id));
 
     userRoom.emit(wsMessageKind.CHAT_PAGE_CONTENT, {
       data: {
@@ -190,11 +190,5 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   @SubscribeMessage(wsMessageKind.CLOSE_CHAT_EVENT)
   async handleCloseChat(@ConnectedSocket() client: Socket, @MessageBody('data') chatId: string) {
     client.leave(chatId);
-  }
-
-  @SubscribeMessage('test_event')
-  async handleTestEvent(@MessageBody('data') data: TestEventMessageDto) {
-    // eslint-disable-next-line no-console
-    console.log('This is test event data:', data);
   }
 }
