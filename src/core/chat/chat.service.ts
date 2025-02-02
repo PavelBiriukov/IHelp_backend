@@ -4,18 +4,23 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ObjectId } from 'mongoose';
 
 import {
+  AdminMetaDto,
   AnyChatInfo,
   AnyUserChatsResponseDtoInterface,
+  ConflictChatsTupleMetaInterface,
   CreateSystemChatEntityDtoType,
   CreateTaskChatEntityDtoType,
   GetAdminChatsResponseDtoInterface,
   GetUserChatsResponseDtoInterface,
   MessageInterface,
+  MetaDto,
   SystemChatInfo,
+  SystemChatInterface,
   SystemChatMetaInterface,
   TaskChatInfo,
   TaskChatInterface,
   TaskChatMetaInterface,
+  UserMetaDto,
 } from '../../common/types/chats.types';
 // import { WsNewMessage } from '../../common/types/websockets.types';
 import { TaskInterface } from '../../common/types/task.types';
@@ -34,8 +39,10 @@ import { WsNewMessage } from '../../common/types/websockets.types';
 import { ChatsFactory } from '../../entities/chats/chat.entity.factory';
 import { GetChatMessagesQuery } from '../../common/queries/get-chat-messages.query';
 import { GetUserQuery } from '../../common/queries/get-user.query';
-import { isSystemChatInterface } from '../../common/helpers/is-system-chat-interface';
-import { isTaskChatInterface } from '../../common/helpers/is-task-chat-interface';
+import { isAnyUserInterface } from '../../common/type-predicates/is-user-interface';
+import { ensureStringId } from '../../common/helpers/ensure-string-id';
+import { isTaskChatInterface } from '../../common/type-predicates/is-task-chat-interface';
+import { isSystemChatInterface } from '../../common/type-predicates/is-system-chat-interface';
 
 @Injectable()
 export class ChatService {
@@ -348,8 +355,7 @@ export class ChatService {
     const chat = chatId
       ? await this.chatsFactory.find(typeof chatId === 'string' ? chatId : chatId.toString())
       : await this._createSystemChat(dto);
-    const msg = (await chat.postMessage(dto)).lastPost;
-    return msg;
+    return (await chat.postMessage(dto)).lastPost;
   }
 
   public async getMessages(dto: GetChatMessagesQuery): Promise<Array<MessageInterface>> {
@@ -406,6 +412,64 @@ export class ChatService {
           { cause: `В пользователе с _id '${usr._id}' указан неверный user.role: '${usr.role}'` }
         );
       }
+    }
+  }
+
+  public async getFreshMetaForOpponent(chatId: string, userId: string): Promise<MetaDto> {
+    const promises: [Promise<ChatEntity>, Promise<AnyUserInterface>] = [
+      this.chatsFactory.find(chatId),
+      this.queryBus.execute<GetUserQuery, AnyUserInterface>(new GetUserQuery(userId)),
+    ];
+    const task: Array<TaskChatMetaInterface> = [];
+    const system: Array<SystemChatMetaInterface> = [];
+    const my: Array<SystemChatMetaInterface> = [];
+    const moderated: Array<ConflictChatsTupleMetaInterface> = [];
+    const conflicts: Array<ConflictChatsTupleMetaInterface> = [];
+    const [entity, user] = await Promise.all(promises);
+    if (entity instanceof ChatEntity && isAnyUserInterface(user)) {
+      switch (entity.meta.type) {
+        case ChatType.TASK_CHAT: {
+          task.push(this._getTaskChatMeta(entity, user.role as UserRole));
+          break;
+        }
+        case ChatType.SYSTEM_CHAT: {
+          const chatMeta = this._getSystemChatMeta(entity, user.role as UserRole);
+          const meta = entity.meta as SystemChatInterface;
+          if (meta.type === ChatType.SYSTEM_CHAT && isSystemChatInterface(meta) && !!meta.admin) {
+            if (ensureStringId(meta.admin._id) === ensureStringId(user._id)) {
+              my.push(chatMeta);
+            } else {
+              system.push(chatMeta);
+            }
+          }
+          break;
+        }
+        case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER:
+        case ChatType.CONFLICT_CHAT_WITH_RECIPIENT:
+          break;
+        default:
+          throw new InternalServerErrorException(
+            { message: `Внутренняя ошибка сервера при обновлении метаданных чата '${chatId}'` },
+            { cause: `Неверный тип чата '${chatId}': ${entity.meta.type}.` }
+          );
+      }
+      if (user.role === UserRole.ADMIN) {
+        return { my, system, moderated, conflicts } as AdminMetaDto;
+      }
+      return { task, system, conflicts } as UserMetaDto;
+    }
+
+    if (entity instanceof ChatEntity) {
+      throw new InternalServerErrorException(
+        { message: `Внутренняя ошибка сервера при обновлении метаданных чата '${chatId}'` },
+        { cause: `Неверная сущность чата '${chatId}'.` }
+      );
+    }
+    if (!isAnyUserInterface(user)) {
+      throw new InternalServerErrorException(
+        { message: `Внутренняя ошибка сервера при обновлении метаданных чата '${chatId}'` },
+        { cause: `Неверный объект пользователя '${userId}'.` }
+      );
     }
   }
 
