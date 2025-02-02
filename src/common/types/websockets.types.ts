@@ -22,7 +22,7 @@ export const wsMessageKind = {
   CONNECTION_EVENT: 'Connection',
   OPEN_CHAT_EVENT: 'OpenChat',
   CLOSE_CHAT_EVENT: 'CloseChat',
-  UPDATE_LASTREAD_COMMAND: 'RefreshLastread',
+  UPDATE_LASTREAD_COMMAND: 'UpdateLastread',
 } as const;
 
 export type wsMessageKind = keyof typeof wsMessageKind;
