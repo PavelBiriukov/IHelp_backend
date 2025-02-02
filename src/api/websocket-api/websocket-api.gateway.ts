@@ -13,12 +13,17 @@ import {
 import { Server, Socket } from 'socket.io';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
+import { ObjectId } from 'mongoose';
 import { AddChatMessageCommand } from '../../common/commands/add-chat-message.command';
 import configuration from '../../config/configuration';
 import { SocketValidationPipe } from '../../common/pipes/socket-validation.pipe';
 import { AnyUserInterface } from '../../common/types/user.types';
 import { GetUserChatsMetaQuery } from '../../common/queries/get-user-chats-meta.query';
-import { wsMessageKind, wsChatPageQueryPayload } from '../../common/types/websockets.types';
+import {
+  wsMessageKind,
+  wsChatPageQueryPayload,
+  wsMetaPayload,
+} from '../../common/types/websockets.types';
 import { NewMessageDto } from './dto/new-message.dto';
 import { AnyUserChatsResponseDtoInterface, MessageInterface } from '../../common/types/chats.types';
 import { GetChatMessagesQuery } from '../../common/queries/get-chat-messages.query';
@@ -164,6 +169,12 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   sendNewMessage(savedMessage: MessageInterface) {
     this.server.in(ensureStringId(savedMessage.chatId)).emit(wsMessageKind.NEW_MESSAGE_COMMAND, {
       data: savedMessage,
+    });
+  }
+
+  sendFreshMeta(userId: string | ObjectId, meta: wsMetaPayload) {
+    this.server.in(ensureStringId(userId)).emit(wsMessageKind.REFRESH_CHATS_META_COMMAND, {
+      data: meta,
     });
   }
 
