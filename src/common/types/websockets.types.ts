@@ -65,7 +65,8 @@ export type wsDisconnectionPayload = {
 };
 
 export type wsLastreadPayload = {
-  [chatId in string]: Date;
+  chatId: string;
+  lastread: Date;
 };
 
 export type wsPayloadType =

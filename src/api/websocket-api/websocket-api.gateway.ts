@@ -24,6 +24,7 @@ import {
   wsChatPageQueryPayload,
   wsMetaPayload,
   wsUserStatus,
+  wsLastreadPayload,
 } from '../../common/types/websockets.types';
 import { NewMessageDto } from './dto/new-message.dto';
 import { AnyUserChatsResponseDtoInterface, MessageInterface } from '../../common/types/chats.types';
@@ -31,6 +32,7 @@ import { GetChatMessagesQuery } from '../../common/queries/get-chat-messages.que
 import { AuthService } from '../../core/auth/auth.service';
 import { SocketAuthGuard } from '../../common/guards/socket-auth.guard';
 import { ensureStringId } from '../../common/helpers/ensure-string-id';
+import { UpdateLastreadCommand } from '../../common/commands/update-lastread.command';
 
 /*
 interface TestEventMessageInterface {
@@ -214,6 +216,15 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
         messages,
       },
     });
+  }
+
+  @SubscribeMessage(wsMessageKind.UPDATE_LASTREAD_COMMAND)
+  async handleUpdateLastread(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('data') dto: wsLastreadPayload
+  ) {
+    const { user = null } = client.data;
+    await this.queryBus.execute(new UpdateLastreadCommand(dto, user));
   }
 
   @SubscribeMessage(wsMessageKind.CLOSE_CHAT_EVENT)

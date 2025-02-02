@@ -368,10 +368,6 @@ export class ChatService {
     switch (chat.meta.type) {
       case ChatType.TASK_CHAT: {
         const { volunteer, recipient } = chat.meta as TaskChatInterface;
-        /*   const [volunteer, recipient] = Promise.all<AnyUserInterface>([
-          this.queryBus.execute<GetUserQuery, AnyUserInterface>(new GetUserQuery(volunteerId)),
-          this.queryBus.execute<GetUserQuery, AnyUserInterface>(new GetUserQuery(recipientId)),
-        ]); */
         if (ensureStringId(authorId) === ensureStringId(volunteer._id)) {
           counterpartyId = ensureStringId(recipient._id);
           authorMeta = this._getFreshMetaForUser(chat, volunteer as AnyUserInterface);
@@ -495,7 +491,19 @@ export class ChatService {
     }
   }
 
-  public _getFreshMetaForUser(entity: ChatEntity, user: AnyUserInterface): wsMetaPayload {
+  public async updateLastread(
+    chatId: string | ObjectId,
+    lastread: Date,
+    user: AnyUserInterface
+  ): Promise<wsMetaPayload> {
+    const entity = await this.chatsFactory.find(chatId);
+    return this._getFreshMetaForUser(
+      await entity.updateWatermark(user.role as UserRole, lastread),
+      user
+    );
+  }
+
+  private _getFreshMetaForUser(entity: ChatEntity, user: AnyUserInterface): wsMetaPayload {
     const tasks: Array<TaskChatMetaInterface> = [];
     const system: Array<SystemChatMetaInterface> = [];
     const my: Array<SystemChatMetaInterface> = [];
