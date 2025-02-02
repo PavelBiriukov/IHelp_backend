@@ -22,6 +22,7 @@ export const wsMessageKind = {
   CONNECTION_EVENT: 'Connection',
   OPEN_CHAT_EVENT: 'OpenChat',
   CLOSE_CHAT_EVENT: 'CloseChat',
+  UPDATE_LASTREAD_COMMAND: 'RefreshLastread',
 } as const;
 
 export type wsMessageKind = keyof typeof wsMessageKind;
@@ -63,12 +64,17 @@ export type wsDisconnectionPayload = {
   userId: string;
 };
 
+export type wsLastreadPayload = {
+  [chatId in string]: Date;
+};
+
 export type wsPayloadType =
   | wsTokenPayload
   | wsMetaPayload
   | wsChatPageQueryPayload
   | wsMessagesPayload
-  | wsDisconnectionPayload;
+  | wsDisconnectionPayload
+  | wsLastreadPayload;
 
 export type wsMessageData = {
   data: wsPayloadType;
