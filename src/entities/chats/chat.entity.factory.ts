@@ -22,14 +22,14 @@ import { TaskChat } from '../../datalake/chats/schemas/task-chat.schema';
 import { SystemChat } from '../../datalake/chats/schemas/system-chat.schema';
 import { ConflictChatWithVolunteer } from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
 import { ConflictChatWithRecipient } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
-import { isChatType } from '../../common/helpers/is-chat-type';
+import { isChatType } from '../../common/type-predicates/is-chat-type';
 import {
   isCreateConflictChatTuple,
   isCreateSystemChatDto,
   isCreateTaskChatDto,
-} from '../../common/helpers/is-create-chat-dto';
-import { isObjectId } from '../../common/helpers/is-objectid';
-import { isChatSearchRecord } from '../../common/helpers/is-chat-search-record';
+} from '../../common/type-predicates/is-create-chat-dto';
+import { isObjectId } from '../../common/type-predicates/is-objectid';
+import { isChatSearchRecord } from '../../common/type-predicates/is-chat-search-record';
 
 @Injectable()
 export class ChatsFactory {

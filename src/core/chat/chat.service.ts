@@ -496,14 +496,14 @@ export class ChatService {
   }
 
   public _getFreshMetaForUser(entity: ChatEntity, user: AnyUserInterface): wsMetaPayload {
-    const task: Array<TaskChatMetaInterface> = [];
+    const tasks: Array<TaskChatMetaInterface> = [];
     const system: Array<SystemChatMetaInterface> = [];
     const my: Array<SystemChatMetaInterface> = [];
     const moderated: Array<ConflictChatsTupleMetaInterface> = [];
     const conflicts: Array<ConflictChatsTupleMetaInterface> = [];
     switch (entity.meta.type) {
       case ChatType.TASK_CHAT: {
-        task.push(this._getTaskChatMeta(entity, user.role as UserRole));
+        tasks.push(this._getTaskChatMeta(entity, user.role as UserRole));
         break;
       }
       case ChatType.SYSTEM_CHAT: {
@@ -531,7 +531,7 @@ export class ChatService {
     if (user.role === UserRole.ADMIN) {
       return { my, system, moderated, conflicts } as wsAdminMetaPayload;
     }
-    return { task, system, conflicts } as wsUserMetaPayload;
+    return { tasks, system, conflicts } as wsUserMetaPayload;
   }
 
   private async _transformEntityToInfo<T extends AnyChatInfo>(
