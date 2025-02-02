@@ -30,11 +30,20 @@ export type wsTokenPayload = {
   token: string;
 };
 
-export type wsMetaPayload = {
+export type wsUserMetaPayload = {
   system: Array<SystemChatMetaInterface>;
   tasks: Array<TaskChatMetaInterface>;
   conflicts: Array<ConflictChatsTupleMetaInterface>;
 };
+
+export type wsAdminMetaPayload = {
+  my: Array<SystemChatMetaInterface>;
+  system: Array<SystemChatMetaInterface>;
+  moderated: Array<ConflictChatsTupleMetaInterface>;
+  conflicts: Array<ConflictChatsTupleMetaInterface>;
+};
+
+export type wsMetaPayload = wsUserMetaPayload | wsAdminMetaPayload;
 
 export type wsChatPageQueryPayload = {
   chatId: string;
