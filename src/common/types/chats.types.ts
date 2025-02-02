@@ -17,6 +17,7 @@ import {
   ConflictChatWithRecipient,
   ConflictChatWithRecipientDoc,
 } from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
+import { wsAdminMetaPayload, wsMetaPayload, wsUserMetaPayload } from './websockets.types';
 
 export interface MessageModelInterface {
   body: string;
@@ -184,6 +185,10 @@ export interface GetAdminChatsResponseDtoInterface {
   moderated: Array<ConflictChatInfo>;
   conflict: Array<ConflictChatInfo>;
 }
+
+export type UserMetaDto = wsUserMetaPayload;
+export type AdminMetaDto = wsAdminMetaPayload;
+export type MetaDto = wsMetaPayload;
 
 export type AnyUserChatsResponseDtoInterface =
   | GetUserChatsResponseDtoInterface
