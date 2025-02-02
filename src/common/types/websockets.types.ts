@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-cycle
 import {
   ConflictChatsTupleMetaInterface,
   MessageInterface,
@@ -44,6 +45,11 @@ export type wsAdminMetaPayload = {
 };
 
 export type wsMetaPayload = wsUserMetaPayload | wsAdminMetaPayload;
+
+export type wsUserStatus = {
+  isOnline: boolean;
+  isInChat: boolean;
+};
 
 export type wsChatPageQueryPayload = {
   chatId: string;

@@ -23,6 +23,7 @@ import {
   wsMessageKind,
   wsChatPageQueryPayload,
   wsMetaPayload,
+  wsUserStatus,
 } from '../../common/types/websockets.types';
 import { NewMessageDto } from './dto/new-message.dto';
 import { AnyUserChatsResponseDtoInterface, MessageInterface } from '../../common/types/chats.types';
@@ -91,6 +92,23 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.in(ensureStringId(user._id)).emit(wsMessageKind.INITIAL_CHATS_META_COMMAND, {
       data: userChatsMeta,
     });
+  }
+
+  public async getUserStatus(
+    userId: string | ObjectId,
+    chatId: string | ObjectId
+  ): Promise<wsUserStatus> {
+    let isOnline = false;
+    let isInChat = false;
+    try {
+      const userRoom = await this.server.in(ensureStringId(userId)).fetchSockets();
+      const chatRoom = await this.server.in(ensureStringId(chatId)).fetchSockets();
+      isOnline = userRoom.length > 0;
+      isInChat = chatRoom.map((socket) => socket.data.user._id).includes(userId);
+    } catch (_) {
+      return { isOnline: false, isInChat: false };
+    }
+    return { isOnline, isInChat };
   }
 
   async sendTokenAndUpdatedUser(user: AnyUserInterface, token: string) {
