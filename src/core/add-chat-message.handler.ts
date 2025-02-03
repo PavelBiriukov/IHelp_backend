@@ -21,18 +21,14 @@ export class AddChatMessageHandler implements ICommandHandler<AddChatMessageComm
       this.websocketApiGateway.getUserStatus(authorId, msg.chatId),
       this.websocketApiGateway.getUserStatus(counterpartyId, msg.chatId),
     ]);
-
+    if (authorStatus.isOnline || counterpartyStatus.isOnline) {
+      this.websocketApiGateway.sendNewMessage(msg);
+    }
     if (authorStatus.isOnline && !!authorStatus.isInChat) {
-      return Promise.all([
-        this.websocketApiGateway.sendNewMessage(msg),
-        this.websocketApiGateway.sendFreshMeta(authorId, authorMeta),
-      ]);
+      this.websocketApiGateway.sendFreshMeta(authorId, authorMeta);
     }
     if (counterpartyStatus.isOnline && !counterpartyStatus.isInChat) {
-      return Promise.all([
-        this.websocketApiGateway.sendNewMessage(msg),
-        this.websocketApiGateway.sendFreshMeta(counterpartyId, counterpartyMeta),
-      ]);
+      this.websocketApiGateway.sendFreshMeta(counterpartyId, counterpartyMeta);
     }
   }
 }
