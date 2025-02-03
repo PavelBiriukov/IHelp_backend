@@ -127,7 +127,7 @@ export class ChatsFactory {
   public async create(type: 'SystemChat', dto: CreateSystemChatEntityDtoType): Promise<ChatEntity>;
 
   public async create(
-    type: 'SystemChat',
+    type: 'ConflictChat',
     dto: [CreateConflictVolunteerChatEntityDtoType, CreateConflictRecipientChatEntityDtoType]
   ): Promise<[ChatEntity, ChatEntity]>;
 
