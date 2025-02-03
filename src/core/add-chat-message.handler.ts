@@ -11,12 +11,12 @@ export class AddChatMessageHandler implements ICommandHandler<AddChatMessageComm
     private readonly chatService: ChatService
   ) {}
 
-  async execute({ message }: AddChatMessageCommand) {
+  async execute({ message, user }: AddChatMessageCommand) {
     const {
       message: msg,
       author: { _id: authorId, meta: authorMeta },
       counterparty: { _id: counterpartyId, meta: counterpartyMeta },
-    } = await this.chatService.addMessage(message);
+    } = await this.chatService.addMessage(message, user);
     const [authorStatus, counterpartyStatus] = await Promise.all<wsUserStatus>([
       this.websocketApiGateway.getUserStatus(authorId, msg.chatId),
       this.websocketApiGateway.getUserStatus(counterpartyId, msg.chatId),

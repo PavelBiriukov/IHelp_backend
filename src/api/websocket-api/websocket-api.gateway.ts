@@ -182,8 +182,12 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   @SubscribeMessage(wsMessageKind.NEW_MESSAGE_COMMAND)
-  async handleNewMessage(@MessageBody('data') newMessage: NewMessageDto) {
-    return this.commandBus.execute(new AddChatMessageCommand(newMessage));
+  async handleNewMessage(
+    @MessageBody('data') newMessage: NewMessageDto,
+    @ConnectedSocket() client: Socket
+  ) {
+    const { user = null } = client.data;
+    return this.commandBus.execute(new AddChatMessageCommand(newMessage, user));
   }
 
   sendNewMessage(savedMessage: MessageInterface) {

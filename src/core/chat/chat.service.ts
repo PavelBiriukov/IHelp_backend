@@ -7,8 +7,6 @@ import {
   AnyChatInfo,
   AnyUserChatsResponseDtoInterface,
   ConflictChatsTupleMetaInterface,
-  ConflictChatWithRecipientInterface,
-  ConflictChatWithVolunteerInterface,
   CreateSystemChatEntityDtoType,
   CreateTaskChatEntityDtoType,
   GetAdminChatsResponseDtoInterface,
@@ -186,8 +184,7 @@ export class ChatService {
   /* System chats */
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-  private async _createSystemChat(dto: WsNewMessage): Promise<ChatEntity> {
-    const { author: user } = dto;
+  private async _createSystemChat(user: AnyUserInterface): Promise<ChatEntity> {
     const data: CreateSystemChatEntityDtoType = {
       user,
       type: ChatType.SYSTEM_CHAT,
@@ -355,67 +352,71 @@ export class ChatService {
 
   /* General chat handling methods */
 
-  async addMessage(dto: WsNewMessage): Promise<MetaDto> {
-    const { chatId } = dto;
+  async addMessage(dto: WsNewMessage, user: AnyUserInterface): Promise<MetaDto> {
+    const { chatId, attaches = [], body, timestamp } = dto;
+    if (!chatId) {
+      throw new InternalServerErrorException(
+        { message: 'Внутренняя ошибка сервера при добавлении сообщения' },
+        { cause: 'В dto нового сообщения отсутствует chatId' }
+      );
+    }
     const chat = chatId
       ? await this.chatsFactory.find(typeof chatId === 'string' ? chatId : chatId.toString())
-      : await this._createSystemChat(dto);
-    const message = (await chat.postMessage(dto)).lastPost;
+      : await this._createSystemChat(user);
+    const message = (await chat.postMessage({ chatId, body, attaches, timestamp, author: user }))
+      .lastPost;
     let authorMeta: wsMetaPayload;
     let counterpartyMeta: wsMetaPayload;
     let counterpartyId: string;
+    let counterparty: AnyUserInterface;
     const authorId = message.author._id;
     switch (chat.meta.type) {
       case ChatType.TASK_CHAT: {
         const { volunteer, recipient } = chat.meta as TaskChatInterface;
         if (ensureStringId(authorId) === ensureStringId(volunteer._id)) {
+          counterparty = (await this.queryBus.execute(
+            new GetUserQuery(recipient._id)
+          )) as AnyUserInterface;
           counterpartyId = ensureStringId(recipient._id);
-          authorMeta = this._getFreshMetaForUser(chat, volunteer as AnyUserInterface);
-          counterpartyMeta = this._getFreshMetaForUser(chat, recipient as AnyUserInterface);
+          authorMeta = this._getFreshMetaForUser(chat, user);
+          counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
         } else {
           counterpartyId = ensureStringId(volunteer._id);
+          counterparty = (await this.queryBus.execute(
+            new GetUserQuery(volunteer._id)
+          )) as AnyUserInterface;
           authorMeta = this._getFreshMetaForUser(chat, recipient as AnyUserInterface);
           counterpartyMeta = this._getFreshMetaForUser(chat, volunteer as AnyUserInterface);
         }
         break;
       }
       case ChatType.SYSTEM_CHAT: {
-        const { user, admin } = chat.meta as SystemChatInterface;
-        if (ensureStringId(user._id) === ensureStringId(authorId)) {
+        const { user: usr, admin } = chat.meta as SystemChatInterface;
+        if (ensureStringId(usr._id) === ensureStringId(authorId)) {
           counterpartyId = ensureStringId(admin._id);
-          authorMeta = this._getFreshMetaForUser(chat, user as AnyUserInterface);
-          counterpartyMeta = this._getFreshMetaForUser(chat, admin as AnyUserInterface);
+          counterparty = (await this.queryBus.execute(
+            new GetUserQuery(admin._id)
+          )) as AnyUserInterface;
+          authorMeta = this._getFreshMetaForUser(chat, user);
+          counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
         } else {
-          counterpartyId = ensureStringId(user._id);
-          authorMeta = this._getFreshMetaForUser(chat, admin as AnyUserInterface);
-          counterpartyMeta = this._getFreshMetaForUser(chat, user as AnyUserInterface);
+          counterpartyId = ensureStringId(usr._id);
+          counterparty = (await this.queryBus.execute(
+            new GetUserQuery(usr._id)
+          )) as AnyUserInterface;
+          authorMeta = this._getFreshMetaForUser(chat, user);
+          counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
         }
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER: {
-        const { volunteer, admin } = chat.meta as ConflictChatWithVolunteerInterface;
-        if (ensureStringId(volunteer.id) === ensureStringId(authorId)) {
-          counterpartyId = ensureStringId(admin._id);
-          authorMeta = emptyWsUserMeta;
-          counterpartyMeta = emptyWsAdminMeta;
-        } else {
-          counterpartyId = ensureStringId(volunteer._id);
-          authorMeta = emptyWsAdminMeta;
-          counterpartyMeta = emptyWsUserMeta;
-        }
+        authorMeta = emptyWsUserMeta;
+        counterpartyMeta = emptyWsAdminMeta;
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_RECIPIENT: {
-        const { recipient, admin } = chat.meta as ConflictChatWithRecipientInterface;
-        if (ensureStringId(recipient.id) === ensureStringId(authorId)) {
-          counterpartyId = ensureStringId(admin._id);
-          authorMeta = emptyWsUserMeta;
-          counterpartyMeta = emptyWsAdminMeta;
-        } else {
-          counterpartyId = ensureStringId(recipient._id);
-          authorMeta = emptyWsAdminMeta;
-          counterpartyMeta = emptyWsUserMeta;
-        }
+        authorMeta = emptyWsUserMeta;
+        counterpartyMeta = emptyWsAdminMeta;
         break;
       }
       default: {
