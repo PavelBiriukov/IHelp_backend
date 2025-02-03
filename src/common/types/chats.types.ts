@@ -34,6 +34,7 @@ export interface VirginMessageInterface {
   author: AnyUserInterface;
   chatId: ObjectId | string | null;
   attaches?: string[];
+  timestamp: string | Date;
 }
 
 export type TaskChatType = typeof ChatType.TASK_CHAT;
