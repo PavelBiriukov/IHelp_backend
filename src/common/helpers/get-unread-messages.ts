@@ -6,7 +6,10 @@ export function getUnreadMessages(
   messages: Array<MessageInterface>,
   lastread: Date
 ): Array<MessageInterface> {
-  if (!lastread || messages.length === 0) {
+  if (lastread === null && messages.length > 0) {
+    return messages;
+  }
+  if (messages.length === 0 || !lastread) {
     return [];
   }
   const unreads = messages.filter(
