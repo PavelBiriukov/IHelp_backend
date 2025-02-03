@@ -100,7 +100,7 @@ export class ChatService {
     }
     const { type, isActive, _id, taskId, volunteer, recipient, createdAt, updatedAt } = meta;
     const [unreads, watermark] = makeUnreadsMeta(
-      getUnreadMessages(messages, meta[`${role}LastReadAt`])
+      getUnreadMessages(messages, meta[`${role.toLowerCase()}LastReadAt`])
     );
     return {
       type,
