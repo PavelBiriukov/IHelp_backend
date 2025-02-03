@@ -263,3 +263,8 @@ export type AnyChatDoc =
   | SystemChatDoc
   | ConflictChatWithVolunteerDoc
   | ConflictChatWithRecipientDoc;
+
+export interface ChatPageRequestQueryDto {
+  limit: number;
+  skip: number;
+}

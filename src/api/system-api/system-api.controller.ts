@@ -1,6 +1,16 @@
 import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import {
+  ApiBadRequestResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { BlogService } from '../../core/blog/blog.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CategoriesService } from '../../core/categories/categories.service';
@@ -14,6 +24,10 @@ import { ContactsService } from '../../core/contacts/contacts.service';
 import { PolicyService } from '../../core/policy/policy.service';
 import { UpdateUserProfileCommand } from '../../common/commands/update-user-profile.command';
 import { ensureStringId } from '../../common/helpers/ensure-string-id';
+import { GetChatMessagesQuery } from '../../common/queries/get-chat-messages.query';
+import { ChatPageRequestQueryDto, MessageInterface } from '../../common/types/chats.types';
+import { schema } from '../../common/utils/apiSchemaObj';
+import { ChatPageResponseDto } from './dto/chat-page-response-dto';
 
 @Controller('system')
 export class SystemApiController {
@@ -90,5 +104,43 @@ export class SystemApiController {
   @Public()
   public async getPolicy() {
     return this.policyService.getActual();
+  }
+
+  @Get('chats/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Получить сообщения чата по его _id' })
+  @ApiParam({ name: 'id', type: 'string', description: '_id чата' })
+  @ApiQuery({ name: 'skip', type: 'number', description: 'Количество пропускаемых сообщений' })
+  @ApiQuery({ name: 'limit', type: 'number', description: 'Количество запрашиваемых сообщений' })
+  @ApiOkResponse({
+    description: 'Присланы сообщения чата в соответствии с запросом',
+    type: ChatPageResponseDto,
+  })
+  @ApiBadRequestResponse({
+    schema: schema(['string'], 'Bad Request', 400),
+    description: 'Переданы не верные данные',
+  })
+  @ApiUnauthorizedResponse({
+    schema: schema('Unauthorized', null, 401),
+    description: 'Требуется авторизация',
+  })
+  @ApiForbiddenResponse({
+    schema: schema('Forbidden resource', 'Forbidden', 403),
+    description: 'У Вас нет прав доступа к данному чату',
+  })
+  @ApiInternalServerErrorResponse({
+    schema: schema('Внутренняя ошибка сервера', null, 500),
+    description: 'Внутрення ошибка на сервере',
+  })
+  public async getChatMessages(
+    @Query() query: ChatPageRequestQueryDto,
+    @Param('id') chatId: string
+  ) {
+    const { skip, limit } = query;
+    return {
+      messages: await this.queryBus.execute<GetChatMessagesQuery, Array<MessageInterface>>(
+        new GetChatMessagesQuery(chatId, skip, limit)
+      ),
+    };
   }
 }

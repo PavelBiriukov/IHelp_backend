@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-cycle
 import {
+  ChatPageRequestQueryDto,
   ConflictChatsTupleMetaInterface,
   MessageInterface,
   SystemChatMetaInterface,
@@ -52,11 +53,9 @@ export type wsUserStatus = {
   isInChat: boolean;
 };
 
-export type wsChatPageQueryPayload = {
+export interface wsChatPageQueryPayload extends ChatPageRequestQueryDto {
   chatId: string;
-  limit: number;
-  skip: number;
-};
+}
 
 export type wsMessagesPayload = { messages: Array<MessageInterface> };
 
