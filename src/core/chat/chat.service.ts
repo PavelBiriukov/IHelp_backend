@@ -114,7 +114,7 @@ export class ChatService {
     } as TaskChatMetaInterface;
   }
 
-  public async closeTaskChatByTask(taskId: ObjectId): Promise<boolean> {
+  public async closeTaskChatByTask(taskId: ObjectId | string): Promise<boolean> {
     if (!taskId) {
       throw new InternalServerErrorException(
         {
@@ -125,7 +125,7 @@ export class ChatService {
         }
       );
     }
-    const [chat] = await this.chatsFactory.find({ taskId });
+    const [chat] = await this.chatsFactory.find({ taskId, isActive: true });
     const closedChat = await chat.close();
     const { isActive } = closedChat.meta as TaskChatInterface;
     return !isActive;
@@ -365,6 +365,11 @@ export class ChatService {
       : await this._createSystemChat(user);
     const message = (await chat.postMessage({ chatId, body, attaches, timestamp, author: user }))
       .lastPost;
+    await this.updateLastread(
+      message.chatId,
+      typeof message.createdAt === 'string' ? new Date(message.createdAt) : message.createdAt,
+      user
+    );
     let authorMeta: wsMetaPayload;
     let counterpartyMeta: wsMetaPayload;
     let counterpartyId: string;
