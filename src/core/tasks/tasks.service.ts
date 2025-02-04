@@ -33,6 +33,7 @@ import {
   CreateTaskChatCommand,
   CreateTaskChatCommandType,
 } from '../../common/commands/create-chat.command';
+import { CloseTaskChatByTaskIdCommand } from '../../common/commands/close-task-chat-by-taskId.command';
 
 @Injectable()
 export class TasksService {
@@ -346,17 +347,22 @@ export class TasksService {
         userIndex: myIndex,
       });
     }
-
-    return this.tasksRepo.findByIdAndUpdate(
-      taskId,
-      {
-        [myIndex]: result,
-        status: TaskStatus.CONFLICTED,
-        adminResolve: ResolveStatus.VIRGIN,
-        isPendingChanges: true,
-      },
-      { new: true }
-    );
+    const [conflictedTask] = await Promise.all([
+      this.tasksRepo.findByIdAndUpdate(
+        taskId,
+        {
+          [myIndex]: result,
+          status: TaskStatus.CONFLICTED,
+          adminResolve: ResolveStatus.VIRGIN,
+          isPendingChanges: true,
+        },
+        { new: true }
+      ),
+      this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+        new CloseTaskChatByTaskIdCommand(taskId)
+      ),
+    ]);
+    return conflictedTask as Task;
   }
 
   public async cancelTask(taskId: string, user: AnyUserInterface) {
@@ -372,7 +378,14 @@ export class TasksService {
         cause: `Попытка пользователя с _id '${user._id} удалить задачу с _id '${taskId}', которую уже взял волонтёр с _id '${volunteer._id}`,
       });
     }
-    return this.tasksRepo.deleteOne({ _id: taskId }, {});
+
+    const [deleteResult] = await Promise.all([
+      this.tasksRepo.deleteOne({ _id: taskId }, {}),
+      this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+        new CloseTaskChatByTaskIdCommand(taskId)
+      ),
+    ]);
+    return deleteResult;
   }
 
   async closeTaskAsFulfilled({
@@ -411,6 +424,9 @@ export class TasksService {
           },
           { new: true }
         ),
+        this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+          new CloseTaskChatByTaskIdCommand(taskId)
+        ),
       ]);
     }
 
@@ -429,6 +445,9 @@ export class TasksService {
           adminResolve: adminResolveResult || null,
         },
         { new: true }
+      ),
+      this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+        new CloseTaskChatByTaskIdCommand(taskId)
       ),
     ]);
 
@@ -481,7 +500,9 @@ export class TasksService {
         cause: 'Обновление данных задачи не выполнено или выполнено с ошибкой',
       });
     }
-
+    await this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+      new CloseTaskChatByTaskIdCommand(taskId)
+    );
     return updatedTask;
   }
 
