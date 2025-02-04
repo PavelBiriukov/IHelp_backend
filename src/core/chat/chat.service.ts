@@ -373,40 +373,28 @@ export class ChatService {
     switch (chat.meta.type) {
       case ChatType.TASK_CHAT: {
         const { volunteer, recipient } = chat.meta as TaskChatInterface;
-        if (ensureStringId(authorId) === ensureStringId(volunteer._id)) {
-          counterparty = (await this.queryBus.execute(
-            new GetUserQuery(recipient._id)
-          )) as AnyUserInterface;
-          counterpartyId = ensureStringId(recipient._id);
-          authorMeta = this._getFreshMetaForUser(chat, user);
-          counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
-        } else {
-          counterpartyId = ensureStringId(volunteer._id);
-          counterparty = (await this.queryBus.execute(
-            new GetUserQuery(volunteer._id)
-          )) as AnyUserInterface;
-          authorMeta = this._getFreshMetaForUser(chat, recipient as AnyUserInterface);
-          counterpartyMeta = this._getFreshMetaForUser(chat, volunteer as AnyUserInterface);
-        }
+        counterpartyId =
+          ensureStringId(authorId) === ensureStringId(volunteer._id)
+            ? ensureStringId(recipient._id)
+            : ensureStringId(volunteer._id);
+        counterparty = (await this.queryBus.execute(
+          new GetUserQuery(counterpartyId)
+        )) as AnyUserInterface;
+        authorMeta = this._getFreshMetaForUser(chat, user);
+        counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
         break;
       }
       case ChatType.SYSTEM_CHAT: {
         const { user: usr, admin } = chat.meta as SystemChatInterface;
-        if (ensureStringId(usr._id) === ensureStringId(authorId)) {
-          counterpartyId = ensureStringId(admin._id);
-          counterparty = (await this.queryBus.execute(
-            new GetUserQuery(admin._id)
-          )) as AnyUserInterface;
-          authorMeta = this._getFreshMetaForUser(chat, user);
-          counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
-        } else {
-          counterpartyId = ensureStringId(usr._id);
-          counterparty = (await this.queryBus.execute(
-            new GetUserQuery(usr._id)
-          )) as AnyUserInterface;
-          authorMeta = this._getFreshMetaForUser(chat, user);
-          counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
-        }
+        counterpartyId =
+          ensureStringId(usr._id) === ensureStringId(authorId)
+            ? ensureStringId(admin._id)
+            : ensureStringId(usr._id);
+        counterparty = (await this.queryBus.execute(
+          new GetUserQuery(counterpartyId)
+        )) as AnyUserInterface;
+        authorMeta = this._getFreshMetaForUser(chat, user);
+        counterpartyMeta = this._getFreshMetaForUser(chat, counterparty);
         break;
       }
       case ChatType.CONFLICT_CHAT_WITH_VOLUNTEER: {
