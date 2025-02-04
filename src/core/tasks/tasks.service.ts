@@ -406,7 +406,7 @@ export class TasksService {
     let volunteerUpdateResult: PromiseSettledResult<User & AnyUserInterface>;
     let taskUpdateResult: PromiseSettledResult<Task>;
 
-    if (!userIndex) {
+    if (userIndex) {
       [volunteerUpdateResult, taskUpdateResult] = await Promise.allSettled([
         this.commandBus.execute<UpdateVolunteerProfileCommand>(
           new UpdateVolunteerProfileCommand(volunteer._id, {
