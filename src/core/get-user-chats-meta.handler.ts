@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { ChatService } from './chat/chats.service';
+import { ChatService } from './chat/chat.service';
 import { GetUserChatsMetaQuery } from '../common/queries/get-user-chats-meta.query';
 
 @QueryHandler(GetUserChatsMetaQuery)

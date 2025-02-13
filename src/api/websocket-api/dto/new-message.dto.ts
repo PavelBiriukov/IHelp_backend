@@ -20,4 +20,9 @@ export class NewMessageDto implements WsNewMessage {
   @IsNotEmpty()
   @IsString()
   chatId: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  timestamp: string;
 }

@@ -1,8 +1,11 @@
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { type ObjectId, Document, SchemaTypes } from 'mongoose';
+// eslint-disable-next-line import/no-cycle
 import { ConflictChatWithRecipientModelInterface } from '../../../common/types/chats.types';
 import { AdminInterface, RecipientInterface } from '../../../common/types/user.types';
 import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-definition';
+import { MongooseIdAndTimestampsInterface } from '../../../common/types/system.types';
+import { Chat } from './chat.schema';
 
 @Schema({
   timestamps: true,
@@ -13,7 +16,11 @@ import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-de
   },
 })
 export class ConflictChatWithRecipient
-  extends Document
+  extends Document<
+    ObjectId,
+    Record<string, never>,
+    ConflictChatWithRecipientModelInterface & MongooseIdAndTimestampsInterface
+  >
   implements ConflictChatWithRecipientModelInterface
 {
   @Prop({
@@ -60,3 +67,5 @@ export class ConflictChatWithRecipient
 
 export const ConflictChatWithRecipientSchema =
   SchemaFactory.createForClass(ConflictChatWithRecipient);
+
+export type ConflictChatWithRecipientDoc = ConflictChatWithRecipient & Chat;

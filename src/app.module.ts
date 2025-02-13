@@ -26,6 +26,8 @@ import { PolicyModule } from './core/policy/policy.module';
 import { SystemApiModule } from './api/system-api/system-api.module';
 import { LoggerMiddleware } from './common/middleware';
 import { WebsocketApiModule } from './api/websocket-api/websocket-api.module';
+import { ChatEntityModule } from './entities/chats/chat.entity.module';
+import { ChatModule } from './core/chat/chat.module';
 
 @Module({
   imports: [
@@ -55,6 +57,8 @@ import { WebsocketApiModule } from './api/websocket-api/websocket-api.module';
     PolicyModule,
     SystemApiModule,
     WebsocketApiModule,
+    ChatEntityModule,
+    ChatModule,
   ],
   providers: [
     {

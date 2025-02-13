@@ -18,17 +18,22 @@ import { Task } from '../../datalake/task/schemas/task.schema';
 import {
   ResolveResult,
   ResolveStatus,
-  TaskInterface,
+  TaskModelInterface,
   TaskReport,
   TaskStatus,
   TaskClosingProps,
   FulfilledTaskClosingProps,
   TaskClosingConditionalProps,
+  TaskInterface,
 } from '../../common/types/task.types';
 import { AnyUserInterface, UserRole } from '../../common/types/user.types';
 import { Volunteer } from '../../datalake/users/schemas/volunteer.schema';
 import { User } from '../../datalake/users/schemas/user.schema';
-import { CreateTaskChatCommand } from '../../common/commands/create-chat.command';
+import {
+  CreateTaskChatCommand,
+  CreateTaskChatCommandType,
+} from '../../common/commands/create-chat.command';
+import { CloseTaskChatByTaskIdCommand } from '../../common/commands/close-task-chat-by-taskId.command';
 
 @Injectable()
 export class TasksService {
@@ -184,7 +189,7 @@ export class TasksService {
     user?: AnyUserInterface
   ) {
     const { location: center, distance, start, end /* , categoryId */ } = dto;
-    const query: FilterQuery<TaskInterface> = {
+    const query: FilterQuery<TaskModelInterface> = {
       status: taskStatus,
       location: {
         $near: {
@@ -292,7 +297,8 @@ export class TasksService {
       { status: TaskStatus.ACCEPTED, volunteer: { name, phone, avatar, address, _id, vkId, role } },
       { new: true }
     );
-    await this.commandBus.execute(new CreateTaskChatCommand({ taskId, updatedTask }));
+    const data: CreateTaskChatCommandType = { updatedTask: updatedTask as TaskInterface };
+    await this.commandBus.execute(new CreateTaskChatCommand(data));
     return updatedTask;
   }
 
@@ -341,17 +347,22 @@ export class TasksService {
         userIndex: myIndex,
       });
     }
-
-    return this.tasksRepo.findByIdAndUpdate(
-      taskId,
-      {
-        [myIndex]: result,
-        status: TaskStatus.CONFLICTED,
-        adminResolve: ResolveStatus.VIRGIN,
-        isPendingChanges: true,
-      },
-      { new: true }
-    );
+    const [conflictedTask] = await Promise.all([
+      this.tasksRepo.findByIdAndUpdate(
+        taskId,
+        {
+          [myIndex]: result,
+          status: TaskStatus.CONFLICTED,
+          adminResolve: ResolveStatus.VIRGIN,
+          isPendingChanges: true,
+        },
+        { new: true }
+      ),
+      this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+        new CloseTaskChatByTaskIdCommand(taskId)
+      ),
+    ]);
+    return conflictedTask as Task;
   }
 
   public async cancelTask(taskId: string, user: AnyUserInterface) {
@@ -367,7 +378,14 @@ export class TasksService {
         cause: `Попытка пользователя с _id '${user._id} удалить задачу с _id '${taskId}', которую уже взял волонтёр с _id '${volunteer._id}`,
       });
     }
-    return this.tasksRepo.deleteOne({ _id: taskId }, {});
+
+    const [deleteResult] = await Promise.all([
+      this.tasksRepo.deleteOne({ _id: taskId }, {}),
+      this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+        new CloseTaskChatByTaskIdCommand(taskId)
+      ),
+    ]);
+    return deleteResult;
   }
 
   async closeTaskAsFulfilled({
@@ -388,7 +406,7 @@ export class TasksService {
     let volunteerUpdateResult: PromiseSettledResult<User & AnyUserInterface>;
     let taskUpdateResult: PromiseSettledResult<Task>;
 
-    if (!userIndex) {
+    if (userIndex) {
       [volunteerUpdateResult, taskUpdateResult] = await Promise.allSettled([
         this.commandBus.execute<UpdateVolunteerProfileCommand>(
           new UpdateVolunteerProfileCommand(volunteer._id, {
@@ -405,6 +423,9 @@ export class TasksService {
             isPendingChanges: false,
           },
           { new: true }
+        ),
+        this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+          new CloseTaskChatByTaskIdCommand(taskId)
         ),
       ]);
     }
@@ -425,6 +446,9 @@ export class TasksService {
         },
         { new: true }
       ),
+      this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+        new CloseTaskChatByTaskIdCommand(taskId)
+      ),
     ]);
 
     if (volunteerUpdateResult.status === 'rejected') {
@@ -438,8 +462,8 @@ export class TasksService {
         cause: `Обновление данных задачи не выполнено или выполнено с ошибкой: ${taskUpdateResult.reason}`,
       });
     }
-
-    return taskUpdateResult.value;
+    const res = taskUpdateResult as PromiseFulfilledResult<Task>;
+    return res.value;
   }
 
   private async closeTaskAsRejected({
@@ -476,7 +500,9 @@ export class TasksService {
         cause: 'Обновление данных задачи не выполнено или выполнено с ошибкой',
       });
     }
-
+    await this.commandBus.execute<CloseTaskChatByTaskIdCommand, boolean>(
+      new CloseTaskChatByTaskIdCommand(taskId)
+    );
     return updatedTask;
   }
 

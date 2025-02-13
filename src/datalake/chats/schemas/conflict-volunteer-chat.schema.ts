@@ -1,8 +1,10 @@
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { type ObjectId, Document, SchemaTypes } from 'mongoose';
+// eslint-disable-next-line import/no-cycle
 import { ConflictChatWithVolunteerModelInterface } from '../../../common/types/chats.types';
 import { AdminInterface, VolunteerInterface } from '../../../common/types/user.types';
 import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-definition';
+import { Chat } from './chat.schema';
 
 @Schema({
   timestamps: true,
@@ -60,3 +62,5 @@ export class ConflictChatWithVolunteer
 
 export const ConflictChatWithVolunteerSchema =
   SchemaFactory.createForClass(ConflictChatWithVolunteer);
+
+export type ConflictChatWithVolunteerDoc = ConflictChatWithVolunteer & Chat;

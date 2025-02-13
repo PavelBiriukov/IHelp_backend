@@ -9,6 +9,7 @@ import { UsersService } from './users.service';
 import { COMMANDS } from './commands-and-queries/commands';
 // eslint-disable-next-line import/no-cycle
 import { WebsocketApiModule } from '../../api/websocket-api/websocket-api.module';
+// eslint-disable-next-line import/no-cycle
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -18,7 +19,7 @@ import { AuthModule } from '../auth/auth.module';
     HashModule,
     HttpModule,
     CqrsModule,
-    WebsocketApiModule,
+    forwardRef(() => WebsocketApiModule),
   ],
   providers: [...COMMANDS, UsersService, HashService],
   exports: [UsersService],

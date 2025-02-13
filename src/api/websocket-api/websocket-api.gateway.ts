@@ -11,21 +11,30 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { IsArray, IsNotEmpty, IsObject, IsString } from 'class-validator';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
+import { ObjectId } from 'mongoose';
 import { AddChatMessageCommand } from '../../common/commands/add-chat-message.command';
 import configuration from '../../config/configuration';
 import { SocketValidationPipe } from '../../common/pipes/socket-validation.pipe';
 import { AnyUserInterface } from '../../common/types/user.types';
 import { GetUserChatsMetaQuery } from '../../common/queries/get-user-chats-meta.query';
-import { wsMessageKind, wsChatPageQueryPayload } from '../../common/types/websockets.types';
+import {
+  wsMessageKind,
+  wsChatPageQueryPayload,
+  wsMetaPayload,
+  wsUserStatus,
+  wsLastreadPayload,
+} from '../../common/types/websockets.types';
 import { NewMessageDto } from './dto/new-message.dto';
 import { AnyUserChatsResponseDtoInterface, MessageInterface } from '../../common/types/chats.types';
 import { GetChatMessagesQuery } from '../../common/queries/get-chat-messages.query';
 import { AuthService } from '../../core/auth/auth.service';
 import { SocketAuthGuard } from '../../common/guards/socket-auth.guard';
+import { ensureStringId } from '../../common/helpers/ensure-string-id';
+import { UpdateLastreadCommand } from '../../common/commands/update-lastread.command';
 
+/*
 interface TestEventMessageInterface {
   string: string;
   object: object;
@@ -44,6 +53,7 @@ class TestEventMessageDto implements TestEventMessageInterface {
   @IsNotEmpty()
   array: Array<string>;
 }
+*/
 
 @UseGuards(SocketAuthGuard)
 @UsePipes(SocketValidationPipe)
@@ -65,7 +75,7 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   afterInit(server: Server) {
     // eslint-disable-next-line no-console
-    console.log('SystemApi socket server was initialized');
+    console.log('SystemApi socket server was initialized.\nOprions:');
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {
@@ -77,17 +87,34 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
       return;
     }
 
-    client.join(user._id);
+    client.join(ensureStringId(user._id));
 
     const userChatsMeta = await this.queryBus.execute(new GetUserChatsMetaQuery(user._id));
 
-    this.server.in(user._id).emit(wsMessageKind.INITIAL_CHATS_META_COMMAND, {
+    this.server.in(ensureStringId(user._id)).emit(wsMessageKind.INITIAL_CHATS_META_COMMAND, {
       data: userChatsMeta,
     });
   }
 
+  public async getUserStatus(
+    userId: string | ObjectId,
+    chatId: string | ObjectId
+  ): Promise<wsUserStatus> {
+    let isOnline = false;
+    let isInChat = false;
+    try {
+      const userRoom = await this.server.in(ensureStringId(userId)).fetchSockets();
+      const chatRoom = await this.server.in(ensureStringId(chatId)).fetchSockets();
+      isOnline = userRoom.length > 0;
+      isInChat = chatRoom.map((socket) => socket.data.user._id).includes(userId);
+    } catch (_) {
+      return { isOnline: false, isInChat: false };
+    }
+    return { isOnline, isInChat };
+  }
+
   async sendTokenAndUpdatedUser(user: AnyUserInterface, token: string) {
-    const { userRoom, hasOnlineUser } = await this.getUserRoomData(user._id);
+    const { userRoom, hasOnlineUser } = await this.getUserRoomData(ensureStringId(user._id));
 
     if (hasOnlineUser) {
       userRoom.emit(wsMessageKind.REFRESH_TOKEN_COMMAND, {
@@ -155,13 +182,23 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   @SubscribeMessage(wsMessageKind.NEW_MESSAGE_COMMAND)
-  async handleNewMessage(@MessageBody('data') newMessage: NewMessageDto) {
-    return this.commandBus.execute(new AddChatMessageCommand(newMessage));
+  async handleNewMessage(
+    @MessageBody('data') newMessage: NewMessageDto,
+    @ConnectedSocket() client: Socket
+  ) {
+    const { user = null } = client.data;
+    return this.commandBus.execute(new AddChatMessageCommand(newMessage, user));
   }
 
   sendNewMessage(savedMessage: MessageInterface) {
-    this.server.in(savedMessage.chatId as string).emit(wsMessageKind.NEW_MESSAGE_COMMAND, {
+    this.server.in(ensureStringId(savedMessage.chatId)).emit(wsMessageKind.NEW_MESSAGE_COMMAND, {
       data: savedMessage,
+    });
+  }
+
+  sendFreshMeta(userId: string | ObjectId, meta: wsMetaPayload) {
+    this.server.in(ensureStringId(userId)).emit(wsMessageKind.REFRESH_CHATS_META_COMMAND, {
+      data: meta,
     });
   }
 
@@ -176,7 +213,7 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
 
     const { user = null } = client.data;
 
-    const { userRoom } = await this.getUserRoomData(user._id);
+    const { userRoom } = await this.getUserRoomData(ensureStringId(user._id));
 
     userRoom.emit(wsMessageKind.CHAT_PAGE_CONTENT, {
       data: {
@@ -185,14 +222,17 @@ export class WebsocketApiGateway implements OnGatewayInit, OnGatewayConnection {
     });
   }
 
+  @SubscribeMessage(wsMessageKind.UPDATE_LASTREAD_COMMAND)
+  async handleUpdateLastread(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('data') dto: wsLastreadPayload
+  ) {
+    const { user = null } = client.data;
+    await this.queryBus.execute(new UpdateLastreadCommand(dto, user));
+  }
+
   @SubscribeMessage(wsMessageKind.CLOSE_CHAT_EVENT)
   async handleCloseChat(@ConnectedSocket() client: Socket, @MessageBody('data') chatId: string) {
     client.leave(chatId);
-  }
-
-  @SubscribeMessage('test_event')
-  async handleTestEvent(@MessageBody('data') data: TestEventMessageDto) {
-    // eslint-disable-next-line no-console
-    console.log('This is test event data:', data);
   }
 }

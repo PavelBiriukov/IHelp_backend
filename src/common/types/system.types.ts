@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongoose';
+
 export type ServerConfiguration = {
   port: number;
   ws_port: number;
@@ -35,8 +37,23 @@ export type AppConfiguration = {
 };
 
 export interface MongooseIdAndTimestampsInterface {
-  _id: string;
-  id?: string;
-  createdAt: string;
-  updatedAt: string;
+  _id: string | ObjectId;
+  id?: string | ObjectId;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
+
+export const ChatType = {
+  TASK_CHAT: 'TaskChat',
+  SYSTEM_CHAT: 'SystemChat',
+  CONFLICT_CHAT: 'ConflictChat',
+  CONFLICT_CHAT_WITH_VOLUNTEER: 'ConflictChatWithVolunteer',
+  CONFLICT_CHAT_WITH_RECIPIENT: 'ConflictChatWithRecipient',
+} as const;
+// export const ChatTypes = ChatType;
+export type ChatTypes =
+  | 'TaskChat'
+  | 'SystemChat'
+  | 'ConflictChat'
+  | 'ConflictChatWithVolunteer'
+  | 'ConflictChatWithRecipient';

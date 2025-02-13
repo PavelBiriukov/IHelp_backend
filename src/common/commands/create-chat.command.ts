@@ -1,7 +1,6 @@
 import { TaskInterface } from '../types/task.types';
 
-type CreateTaskChatCommandType = {
-  taskId: string;
+export type CreateTaskChatCommandType = {
   updatedTask: TaskInterface;
 };
 

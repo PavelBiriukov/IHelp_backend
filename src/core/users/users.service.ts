@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InternalServerErrorException, NotFoundException } from '@nestjs/common/exceptions';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ObjectId } from 'mongoose';
 import { CreateAdminDto, CreateUserDto } from '../../common/dto/users.dto';
 import {
   AdminInterface,
@@ -512,6 +513,10 @@ export class UsersService {
     )) as User & AnyUserInterface;
 
     return Promise.resolve(updatedUser);
+  }
+
+  public async getUserById(userId: string | ObjectId) {
+    return this.usersRepo.findById(userId);
   }
 
   private static requireLogin(userId: string) {

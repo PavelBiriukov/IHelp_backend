@@ -1,6 +1,7 @@
 import { PointGeoJSONInterface } from './point-geojson.types';
 import { CategoryInterface } from './category.types';
 import { UserProfile } from './user.types';
+import { MongooseIdAndTimestampsInterface } from './system.types';
 
 export enum TaskStatus {
   CREATED = 'created',
@@ -31,7 +32,7 @@ export enum TaskReport {
   REJECTED = 'rejected',
 }
 
-export interface TaskInterface {
+export interface TaskModelInterface {
   recipient: UserProfile;
   volunteer: UserProfile | null;
   status: TaskStatus;
@@ -46,6 +47,8 @@ export interface TaskInterface {
   moderator: UserProfile | null;
   isPendingChanges: boolean;
 }
+
+export interface TaskInterface extends TaskModelInterface, MongooseIdAndTimestampsInterface {}
 
 export interface TaskModelVirtuals {
   status: TaskStatus;

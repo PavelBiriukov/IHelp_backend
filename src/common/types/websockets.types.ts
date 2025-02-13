@@ -1,4 +1,6 @@
+// eslint-disable-next-line import/no-cycle
 import {
+  ChatPageRequestQueryDto,
   ConflictChatsTupleMetaInterface,
   MessageInterface,
   SystemChatMetaInterface,
@@ -21,6 +23,7 @@ export const wsMessageKind = {
   CONNECTION_EVENT: 'Connection',
   OPEN_CHAT_EVENT: 'OpenChat',
   CLOSE_CHAT_EVENT: 'CloseChat',
+  UPDATE_LASTREAD_COMMAND: 'UpdateLastread',
 } as const;
 
 export type wsMessageKind = keyof typeof wsMessageKind;
@@ -30,17 +33,29 @@ export type wsTokenPayload = {
   token: string;
 };
 
-export type wsMetaPayload = {
+export type wsUserMetaPayload = {
   system: Array<SystemChatMetaInterface>;
   tasks: Array<TaskChatMetaInterface>;
   conflicts: Array<ConflictChatsTupleMetaInterface>;
 };
 
-export type wsChatPageQueryPayload = {
-  chatId: string;
-  limit: number;
-  skip: number;
+export type wsAdminMetaPayload = {
+  my: Array<SystemChatMetaInterface>;
+  system: Array<SystemChatMetaInterface>;
+  moderated: Array<ConflictChatsTupleMetaInterface>;
+  conflicts: Array<ConflictChatsTupleMetaInterface>;
 };
+
+export type wsMetaPayload = wsUserMetaPayload | wsAdminMetaPayload;
+
+export type wsUserStatus = {
+  isOnline: boolean;
+  isInChat: boolean;
+};
+
+export interface wsChatPageQueryPayload extends ChatPageRequestQueryDto {
+  chatId: string;
+}
 
 export type wsMessagesPayload = { messages: Array<MessageInterface> };
 
@@ -48,12 +63,18 @@ export type wsDisconnectionPayload = {
   userId: string;
 };
 
+export type wsLastreadPayload = {
+  chatId: string;
+  lastread: Date;
+};
+
 export type wsPayloadType =
   | wsTokenPayload
   | wsMetaPayload
   | wsChatPageQueryPayload
   | wsMessagesPayload
-  | wsDisconnectionPayload;
+  | wsDisconnectionPayload
+  | wsLastreadPayload;
 
 export type wsMessageData = {
   data: wsPayloadType;
@@ -68,4 +89,7 @@ export type wsOpenedChatsData<T extends string> = {
   [key in T]: Array<string>;
 };
 
-export type WsNewMessage = Omit<MessageInterface, '_id' | 'createdAt'>;
+export interface WsNewMessage
+  extends Omit<MessageInterface, '_id' | 'createdAt' | 'updatedAt' | 'timestamp'> {
+  timestamp: string;
+}

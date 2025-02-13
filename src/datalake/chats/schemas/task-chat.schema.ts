@@ -1,8 +1,10 @@
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { type ObjectId, Document, SchemaTypes } from 'mongoose';
+// eslint-disable-next-line import/no-cycle
 import { TaskChatModelInterface } from '../../../common/types/chats.types';
 import { RecipientInterface, VolunteerInterface } from '../../../common/types/user.types';
 import { rawUserProfile } from '../../../common/constants/mongoose-fields-raw-definition';
+import { Chat } from './chat.schema';
 
 @Schema({
   timestamps: true,
@@ -29,6 +31,7 @@ export class TaskChat extends Document implements TaskChatModelInterface {
 
   @Prop({
     required: true,
+    unique: true,
     type: SchemaTypes.ObjectId,
   })
   taskId: ObjectId;
@@ -49,3 +52,5 @@ export class TaskChat extends Document implements TaskChatModelInterface {
 }
 
 export const TaskChatSchema = SchemaFactory.createForClass(TaskChat);
+
+export type TaskChatDoc = TaskChat & Chat;

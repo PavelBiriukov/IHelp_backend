@@ -11,6 +11,7 @@ services:
       - /app/node_modules
     ports:
       - ${CONTAINER_PORT}:${SERVER_PORT}
+      - ${WS_CONTAINER_PORT}:${WS_SERVER_PORT}
     env_file:
       - .env.dev
     restart: on-failure

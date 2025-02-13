@@ -1,8 +1,9 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, ObjectId, SchemaTypes } from 'mongoose';
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import {
   ResolveStatus,
   TaskInterface,
+  TaskModelInterface,
   TaskReport,
   TaskStatus,
 } from '../../../common/types/task.types';
@@ -22,7 +23,16 @@ import { CategoryInterface } from '../../../common/types/category.types';
     flattenObjectIds: true,
   },
 })
-export class Task extends Document implements TaskInterface {
+export class Task
+  extends Document<ObjectId, Record<string, never>, TaskInterface>
+  implements TaskInterface
+{
+  @Prop({
+    auto: true,
+    type: SchemaTypes.ObjectId,
+  })
+  _id: ObjectId;
+
   @Prop({ type: mongoose.SchemaTypes.String, required: true })
   address: string;
 
@@ -81,6 +91,18 @@ export class Task extends Document implements TaskInterface {
   @Prop({ type: mongoose.SchemaTypes.String, required: true })
   description: string;
 
+  @Prop({
+    required: false,
+    type: SchemaTypes.Date,
+  })
+  createdAt: Date;
+
+  @Prop({
+    required: false,
+    type: SchemaTypes.Date,
+  })
+  updatedAt: Date;
+
   /* static async findWithin(center: GeoCoordinates, distance: number): Promise<Array<Task>> {
     return Task.find({
       location: {
@@ -92,4 +114,4 @@ export class Task extends Document implements TaskInterface {
     });
   } */
 }
-export const TaskSchema = SchemaFactory.createForClass<TaskInterface>(Task);
+export const TaskSchema = SchemaFactory.createForClass<TaskModelInterface>(Task);

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { type ObjectId } from 'mongoose';
 import {
   AdminInterface,
@@ -5,28 +6,45 @@ import {
   RecipientInterface,
   VolunteerInterface,
 } from './user.types';
-import { MongooseIdAndTimestampsInterface } from './system.types';
+import { ChatType, ChatTypes, MongooseIdAndTimestampsInterface } from './system.types';
+import { SystemChat, SystemChatDoc } from '../../datalake/chats/schemas/system-chat.schema';
+import { TaskChat, TaskChatDoc } from '../../datalake/chats/schemas/task-chat.schema';
+import {
+  ConflictChatWithVolunteer,
+  ConflictChatWithVolunteerDoc,
+} from '../../datalake/chats/schemas/conflict-volunteer-chat.schema';
+import {
+  ConflictChatWithRecipient,
+  ConflictChatWithRecipientDoc,
+} from '../../datalake/chats/schemas/conflict-recipient-chat.schema';
+import { wsAdminMetaPayload, wsUserMetaPayload } from './websockets.types';
 
-export interface MessageInterface {
-  _id: ObjectId | string;
+export interface MessageModelInterface {
   body: string;
   attaches: string[];
-  createdAt: Date | string;
   author: AnyUserInterface;
-  chatId: ObjectId | string;
+  chatId: ObjectId | string | null;
+  timestamp: Date | string | null;
 }
 
-export const ChatTypes = {
-  TASK_CHAT: 'TaskChat',
-  SYSTEM_CHAT: 'SystemChat',
-  CONFLICT_CHAT_WITH_VOLUNTEER: 'ConflictChatWithVolunteer',
-  CONFLICT_CHAT_WITH_RECIPIENT: 'ConflictChatWithRecipient',
-} as const;
+export interface MessageInterface extends MessageModelInterface, MongooseIdAndTimestampsInterface {}
 
-export type ChatType = keyof typeof ChatTypes;
+export interface VirginMessageInterface {
+  body: string;
+  author: AnyUserInterface;
+  chatId: ObjectId | string | null;
+  attaches?: string[];
+  timestamp: string | Date;
+}
+
+export type TaskChatType = typeof ChatType.TASK_CHAT;
+export type SystemChatType = typeof ChatType.SYSTEM_CHAT;
+export type VolunteerConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_VOLUNTEER;
+export type RecipientConflictChatType = typeof ChatType.CONFLICT_CHAT_WITH_RECIPIENT;
+export type AnyConflictChatType = VolunteerConflictChatType | RecipientConflictChatType;
 
 export interface ChatModelInterface {
-  type: ChatType;
+  type: ChatTypes;
   isActive: boolean;
 }
 
@@ -82,8 +100,16 @@ export interface ConflictChatWithRecipientInterface
     ConflictChatWithRecipientModelInterface,
     MongooseIdAndTimestampsInterface {}
 
+export type AnyChatInterface =
+  | TaskChatInterface
+  | SystemChatInterface
+  | ConflictChatWithVolunteerInterface
+  | ConflictChatWithRecipientInterface;
+
+export type AnyChat = SystemChat | TaskChat | ConflictChatWithVolunteer | ConflictChatWithRecipient;
+
 export interface WatermarkInterface {
-  watermark: string;
+  watermark: string | null;
   unreads: number;
 }
 
@@ -110,12 +136,16 @@ export interface RecipientConflictChatMetaInterface
     Pick<ConflictChatWithRecipientInterface, 'recipient'>,
     MongooseIdAndTimestampsInterface,
     WatermarkInterface {}
-
-export type VolunteerChatContent = Array<MessageInterface>;
-export type RecipientChatContent = Array<MessageInterface>;
-export type SystemChatContent = Array<MessageInterface>;
-export type TaskChatContent = Array<MessageInterface>;
-export type ConflictChatContentTuple = [VolunteerChatContent, RecipientChatContent];
+export type AnyChatMetaInterface =
+  | TaskChatMetaInterface
+  | SystemChatMetaInterface
+  | VolunteerConflictChatMetaInterface
+  | RecipientConflictChatMetaInterface;
+export type VolunteerChatContent = Array<MessageInterface> | null;
+export type RecipientChatContent = Array<MessageInterface> | null;
+export type SystemChatContent = Array<MessageInterface> | null;
+export type TaskChatContent = Array<MessageInterface> | null;
+export type ConflictChatContentTuple = [VolunteerChatContent | null, RecipientChatContent | null];
 
 export interface ConflictChatsTupleMetaInterface {
   moderator: AdminInterface | null;
@@ -142,6 +172,8 @@ export interface TaskChatInfo {
   chats: TaskChatContent;
 }
 
+export type AnyChatInfo = TaskChatInfo | SystemChatInfo | ConflictChatInfo;
+
 export interface GetUserChatsResponseDtoInterface {
   task: Array<TaskChatInfo>;
   system: Array<SystemChatInfo>;
@@ -155,11 +187,84 @@ export interface GetAdminChatsResponseDtoInterface {
   conflict: Array<ConflictChatInfo>;
 }
 
+export type MetaDto = {
+  message: MessageInterface;
+  author: {
+    _id: string | ObjectId;
+    meta: wsUserMetaPayload | wsAdminMetaPayload;
+  };
+  counterparty: {
+    _id: string | ObjectId;
+    meta: wsAdminMetaPayload | wsUserMetaPayload;
+  };
+};
+
 export type AnyUserChatsResponseDtoInterface =
   | GetUserChatsResponseDtoInterface
   | GetAdminChatsResponseDtoInterface;
 
-export type CreateTaskChatDtoType = Pick<
+export type CreateTaskChatEntityDtoType = Pick<
   TaskChatInterface,
   'taskId' | 'type' | 'volunteer' | 'recipient'
 >;
+export type CreateSystemChatEntityDtoType = Pick<SystemChatInterface, 'type' | 'user'>;
+export type CreateConflictVolunteerChatEntityDtoType = Pick<
+  ConflictChatWithVolunteerInterface,
+  'type' | 'taskId' | 'admin' | 'volunteer'
+>;
+export type CreateConflictRecipientChatEntityDtoType = Pick<
+  ConflictChatWithRecipientInterface,
+  'type' | 'taskId' | 'admin' | 'recipient'
+>;
+export type CreateChatEntityDtoTypes =
+  | CreateTaskChatEntityDtoType
+  | CreateSystemChatEntityDtoType
+  | CreateConflictVolunteerChatEntityDtoType
+  | CreateConflictRecipientChatEntityDtoType;
+
+export type CreateChatDtoType<T extends CreateChatEntityDtoTypes> = Omit<T, '_id' | 'type'>;
+
+export type CreateConflictChatsTupleDtoType = [
+  CreateConflictVolunteerChatEntityDtoType,
+  CreateConflictRecipientChatEntityDtoType
+];
+
+export type ChatMetadata = {
+  _id: ObjectId | string | null;
+  _createdAt: string | Date | null;
+  _updatedAt: string | Date | null;
+  _type: ChatTypes | null;
+  _taskId: ObjectId | string | null;
+  _volunteer: VolunteerInterface | null;
+  _recipient: RecipientInterface | null;
+  _user: VolunteerInterface | RecipientInterface | null;
+  _admin: AdminInterface | null;
+  _opponentChat: ObjectId | null;
+  _volunteerLastReadAt: Date | null;
+  _recipientLastReadAt: Date | null;
+  _adminLastReadAt: Date | null;
+  _userLastReadAt: Date | null;
+  _messages: Array<MessageInterface> | null;
+  _isActive: boolean;
+  _doc: AnyChat | null;
+  _lastPost: MessageInterface | null;
+};
+
+export type ChatFields =
+  | keyof TaskChatInterface
+  | keyof SystemChatInterface
+  | keyof ConflictChatWithVolunteerInterface
+  | keyof ConflictChatWithRecipientInterface;
+
+export type ChatSearchRecord = Record<string, unknown>;
+
+export type AnyChatDoc =
+  | TaskChatDoc
+  | SystemChatDoc
+  | ConflictChatWithVolunteerDoc
+  | ConflictChatWithRecipientDoc;
+
+export interface ChatPageRequestQueryDto {
+  limit: number;
+  skip: number;
+}
